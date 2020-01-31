@@ -29,7 +29,7 @@ public class Quarries extends JavaPlugin implements Listener {
     public static final int TEXID_QUARRYARM = 750566;
     //general
     public static Quarries plugin;
-    public static String LOG_PREFIX = "[ViperFusion] ";
+    public static final String LOG_PREFIX = "[ViperFusion] ";
     public static VersionType version;
     //markers
     public static int Marker_Check_Range;
@@ -71,16 +71,16 @@ public class Quarries extends JavaPlugin implements Listener {
 //Utilities ----------------------------------------------------------------------------------------------------------------------------------
 
     public static String facingToAddedInt(BlockFace face) {
-        String addedint = "";
+        String addedInt = "";
         if (face.equals(BlockFace.NORTH))
-            addedint = "1";
+            addedInt = "1";
         else if (face.equals(BlockFace.EAST))
-            addedint = "2";
+            addedInt = "2";
         else if (face.equals(BlockFace.SOUTH))
-            addedint = "3";
+            addedInt = "3";
         else if (face.equals(BlockFace.WEST))
-            addedint = "4";
-        return addedint;
+            addedInt = "4";
+        return addedInt;
     }
 
     public static Location[] getMinMax(Location l1, Location l2) {
@@ -93,14 +93,14 @@ public class Quarries extends JavaPlugin implements Listener {
         return new Location[]{new Location(l1.getWorld(), minX, minY, minZ), new Location(l1.getWorld(), maxX, maxY, maxZ), new Location(l1.getWorld(), maxX - minX, maxY - minY, maxZ - minZ)};
     }
 
-    public static void createInsideSpawner(Block b, int textureid) {
+    public static void createInsideSpawner(Block b, int textureId) {
         if (version == VersionType.v1_15_R1)
-            CustomSpawner1_15.createInsideSpawner(b, textureid);
+            CustomSpawner1_15.createInsideSpawner(b, textureId);
     }
 
-    public static UUID createOutsideSpawner(Block b, Material replacementBlock, int textureid) {
+    public static UUID createOutsideSpawner(Block b, Material replacementBlock, int textureId) {
         if (version == VersionType.v1_15_R1)
-            return CustomSpawner1_15.createOutsideSpawner(b, textureid);
+            return CustomSpawner1_15.createOutsideSpawner(b, textureId);
         else
             return null;
     }
@@ -154,6 +154,13 @@ public class Quarries extends JavaPlugin implements Listener {
         Construction.onDisable();
         QuarrySystem.onDisable();
         QuarryArm.onDisable();
+
+        //Save data
+        try {
+            DataManager.save();
+        } catch (IOException e) {
+            getLogger().log(Level.SEVERE, "Unable to save data", e);
+        }
     }
 
 	/*

@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Objects;
 
+@SuppressWarnings("CanBeFinal")
 public class PluginFile extends YamlConfiguration {
 
     private File file;

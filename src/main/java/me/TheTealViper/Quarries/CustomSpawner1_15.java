@@ -17,7 +17,7 @@ import java.util.UUID;
 
 public class CustomSpawner1_15 {
 
-    public static void createInsideSpawner(Block b, int textureid) {
+    public static void createInsideSpawner(Block b, int textureId) {
         b.getWorld().playSound(b.getLocation(), Sound.BLOCK_WOOD_PLACE, 1, 1);
         b.setType(Material.SPAWNER);
         CreatureSpawner cs = (CreatureSpawner) b.getState();
@@ -43,7 +43,7 @@ public class CustomSpawner1_15 {
         NBTTagCompound offHand = new NBTTagCompound();
         handList.add(mainHand);
         handList.add(offHand);
-        NBTTagCompound helmet = CustomItems1_15.getItemNBT(textureid);
+        NBTTagCompound helmet = CustomItems1_15.getItemNBT(textureId);
         NBTTagCompound chestplate = new NBTTagCompound();
         NBTTagCompound leggings = new NBTTagCompound();
         NBTTagCompound boots = new NBTTagCompound();
@@ -58,7 +58,7 @@ public class CustomSpawner1_15 {
         b.getState().update();
     }
 
-    public static UUID createOutsideSpawner(Block b, int textureid) {
+    public static UUID createOutsideSpawner(Block b, int textureId) {
         // b.getWorld().playSound(b.getLocation(), Sound.BLOCK_STONE_BREAK, 1, 1);
         // b.setType(replacementBlock);
         ArmorStand e = (ArmorStand) b.getWorld().spawnEntity(b.getLocation().clone().add(.5, 0, .5), EntityType.ARMOR_STAND);
@@ -70,7 +70,7 @@ public class CustomSpawner1_15 {
         e.setVisible(false);
         e.setMarker(true);
         //noinspection deprecation
-        e.setHelmet(CustomItems1_15.getItem(textureid));
+        e.setHelmet(CustomItems1_15.getItem(textureId));
         return e.getUniqueId();
     }
 

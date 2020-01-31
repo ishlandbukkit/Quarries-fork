@@ -1,6 +1,5 @@
 package me.TheTealViper.Quarries.outsidespawners;
 
-import me.TheTealViper.Quarries.PluginFile;
 import me.TheTealViper.Quarries.Quarries;
 import me.TheTealViper.Quarries.misc.LocationSerializable;
 import org.bukkit.Bukkit;
@@ -20,7 +19,6 @@ public class QuarryArm implements Serializable {
 
     private static final long serialVersionUID = 1004245770995582732L;
     public static Map<Location, QuarryArm> DATABASE = new HashMap<>();
-    public static PluginFile PLUGINFILE = new PluginFile(Quarries.plugin, "data/quarryarms");
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public Location loc;
     public UUID uuid;
@@ -36,16 +34,10 @@ public class QuarryArm implements Serializable {
     }
 
     public static void onEnable() {
-
         Quarries.plugin.getServer().getPluginManager().registerEvents(new QuarryArm_Events(), Quarries.plugin);
     }
 
     public static void onDisable() {
-        PLUGINFILE.set("locs", null);
-        for (QuarryArm i : DATABASE.values()) {
-            PLUGINFILE.set("locs." + Quarries.locToString(i.loc), i.uuid.toString());
-        }
-        PLUGINFILE.save();
     }
 
     public static QuarryArm getQuarryArm(Location loc) {

@@ -8,6 +8,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 
+@SuppressWarnings("CanBeFinal")
 public class LocationSerializable implements Serializable {
     private static final long serialVersionUID = 9196768773185758132L;
     String world;

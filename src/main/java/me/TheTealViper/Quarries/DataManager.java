@@ -14,14 +14,14 @@ import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 public class DataManager {
-    private static File dataDir = Quarries.plugin.getDataFolder();
-    private static File constructionData = new File(Quarries.plugin.getDataFolder(), "construction.dat");
-    private static File quarryData = new File(Quarries.plugin.getDataFolder(), "quarry.dat");
-    private static File markerData = new File(Quarries.plugin.getDataFolder(), "marker.dat");
-    private static File quarryArmData = new File(Quarries.plugin.getDataFolder(), "quarryArm.dat");
-    private static File quarrySystemData = new File(Quarries.plugin.getDataFolder(), "quarrySystem.dat");
+    private static final File dataDir = Quarries.plugin.getDataFolder();
+    private static final File constructionData = new File(Quarries.plugin.getDataFolder(), "construction.dat");
+    private static final File quarryData = new File(Quarries.plugin.getDataFolder(), "quarry.dat");
+    private static final File markerData = new File(Quarries.plugin.getDataFolder(), "marker.dat");
+    private static final File quarryArmData = new File(Quarries.plugin.getDataFolder(), "quarryArm.dat");
+    private static final File quarrySystemData = new File(Quarries.plugin.getDataFolder(), "quarrySystem.dat");
 
-    private static ExecutorService pool = Executors.newCachedThreadPool();
+    private static final ExecutorService pool = Executors.newCachedThreadPool();
 
     @SuppressWarnings("unchecked")
     public static void reload() throws IOException {

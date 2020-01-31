@@ -1,6 +1,5 @@
 package me.TheTealViper.Quarries.outsidespawners;
 
-import me.TheTealViper.Quarries.PluginFile;
 import me.TheTealViper.Quarries.Quarries;
 import me.TheTealViper.Quarries.misc.LocationSerializable;
 import org.bukkit.*;
@@ -19,7 +18,6 @@ import java.util.UUID;
 public class Marker implements Listener, Serializable {
 	private static final long serialVersionUID = 3511844179276547506L;
 	public static Map<Location, Marker> DATABASE = new HashMap<>();
-	public static PluginFile PLUGINFILE = new PluginFile(Quarries.plugin, "data/markers");
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	public Location loc;
 	public UUID uuid;
@@ -45,11 +43,6 @@ public class Marker implements Listener, Serializable {
 	}
 
 	public static void onDisable() {
-		PLUGINFILE.set("locs", null);
-		for (Marker marker : DATABASE.values()) {
-			PLUGINFILE.set("locs." + Quarries.locToString(marker.loc), marker.uuid.toString());
-		}
-		PLUGINFILE.save();
 	}
 
 	public static Marker getMarker(Location loc) {

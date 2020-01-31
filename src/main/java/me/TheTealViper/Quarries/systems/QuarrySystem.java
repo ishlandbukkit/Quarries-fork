@@ -1,7 +1,6 @@
 package me.TheTealViper.Quarries.systems;
 
 import me.TheTealViper.Quarries.CustomItems1_15;
-import me.TheTealViper.Quarries.PluginFile;
 import me.TheTealViper.Quarries.Quarries;
 import me.TheTealViper.Quarries.insidespawners.Construction;
 import me.TheTealViper.Quarries.misc.LocationSerializable;
@@ -17,9 +16,13 @@ import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.*;
 
+@SuppressWarnings("CanBeFinal")
 public class QuarrySystem implements Serializable {
     private static final long serialVersionUID = -3701643577709552290L;
     public static Map<Location, QuarrySystem> DATABASE = new HashMap<>();
@@ -34,7 +37,7 @@ public class QuarrySystem implements Serializable {
     @SuppressWarnings("InstanceVariableMayNotBeInitializedByReadObject")
     public transient boolean isActive = false;
     private boolean hitAir;
-    private LocationSerializable maxs, mins;
+    private LocationSerializable maxS, minS;
 
     public QuarrySystem(Block quarryBlock, Location max, Location min, boolean powered, QuarrySystemType type, Vector miningArmShift, boolean hitBedrock, int mineDelay) {
         DATABASE.put(quarryBlock.getLocation(), this);
@@ -54,57 +57,21 @@ public class QuarrySystem implements Serializable {
     }
 
     public static void onDisable() {
-        for (QuarrySystem qs : DATABASE.values()) {
-            PluginFile pf = new PluginFile(Quarries.plugin, "data/systems/quarrysystem/" + Quarries.locToString(qs.quarryBlock.getLocation()));
-            pf.set("max", Quarries.locToString(qs.max));
-            pf.set("min", Quarries.locToString(qs.min));
-            pf.set("powered", qs.powered);
-            pf.set("type", qs.type.toString());
-            pf.set("miningArmShift", Quarries.locToString(qs.miningArmShift.toLocation(qs.quarryBlock.getWorld())));
-            pf.set("hitBedrock", qs.hitBedrock);
-            pf.set("mineDelay", qs.mineDelay);
-            pf.save();
-        }
-    }
-
-    public static QuarrySystem getQuarrySystem(Location loc) {
-        return DATABASE.get(loc);
     }
 
     public static QuarrySystem createQuarrySystem(Block quarryBlock, Location max, Location min, QuarrySystemType type) {
         return new QuarrySystem(quarryBlock, max, min, true, type, new Vector(0, 1, 0), false, 4);
     }
 
-    public static QuarrySystem load(Block quarryBlock) {
-        File file = new File(Quarries.plugin.getDataFolder(), "/data/systems/quarrysystem/" + Quarries.locToString(quarryBlock.getLocation()));
-        if (!file.exists())
-            return null;
-
-        PluginFile pf = new PluginFile(Quarries.plugin, "data/systems/quarrysystem/" + Quarries.locToString(quarryBlock.getLocation()));
-        Location max = Quarries.parseLoc(Objects.requireNonNull(pf.getString("max")));
-        Location min = Quarries.parseLoc(Objects.requireNonNull(pf.getString("min")));
-        boolean powered = pf.getBoolean("powered");
-        QuarrySystemType type = QuarrySystemType.valueOf(pf.getString("type"));
-        Location loc = Quarries.parseLoc(Objects.requireNonNull(pf.getString("miningArmShift")));
-        boolean hitBedrock = pf.getBoolean("hitBedrock");
-        int mineDelay = pf.getInt("mineDelay");
-        return new QuarrySystem(quarryBlock, max, min, powered, type, loc.toVector(), hitBedrock, mineDelay);
-    }
-
-    public static QuarrySystem load(String fileName) {
-        Block quarryBlock = Quarries.parseLoc(fileName).getBlock();
-        return load(quarryBlock);
-    }
-
     public static void initCreateQuarrySystem(Block quarryBlock, Block startingMarker, BlockFace face) {
-//		Bukkit.broadcastMessage("checkrange:" + ViperFusion.Marker_Check_Range);
+//		Bukkit.broadcastMessage("checkRange:" + ViperFusion.Marker_Check_Range);
         List<Location> foundMarkers = new ArrayList<>();
         if (!face.equals(BlockFace.NORTH)) {
             for (int i = 1; i <= Quarries.Marker_Check_Range; i++) {
-                Block tempblock = startingMarker.getRelative(BlockFace.SOUTH, i);
-                if (Marker.DATABASE.containsKey(tempblock.getLocation())) {
+                Block tempBlock = startingMarker.getRelative(BlockFace.SOUTH, i);
+                if (Marker.DATABASE.containsKey(tempBlock.getLocation())) {
 //					Bukkit.broadcastMessage("found!");
-                    foundMarkers.add(tempblock.getLocation());
+                    foundMarkers.add(tempBlock.getLocation());
                     break;
                 }
             }
@@ -194,15 +161,15 @@ public class QuarrySystem implements Serializable {
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-        maxs = LocationSerializable.parseLocation(max);
-        mins = LocationSerializable.parseLocation(min);
+        maxS = LocationSerializable.parseLocation(max);
+        minS = LocationSerializable.parseLocation(min);
         out.defaultWriteObject();
     }
 
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        max = maxs.toLocation();
-        min = mins.toLocation();
+        max = maxS.toLocation();
+        min = minS.toLocation();
         init();
     }
 
@@ -218,13 +185,7 @@ public class QuarrySystem implements Serializable {
         isActive = true;
     }
 
-    public void destroy() throws IOException {
-        //Remove file
-        File file = new File(Quarries.plugin.getDataFolder(), "/data/systems/quarrysystem/" + Quarries.locToString(quarryBlock.getLocation()));
-        if (!file.delete()) {
-            throw new IOException("Unable to delete " + file.getPath());
-        }
-
+    public void destroy() {
         //Break construction blocks
         Vector delta = max.clone().subtract(min.clone()).toVector();
         Block constructionBlock;

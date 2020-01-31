@@ -7,22 +7,22 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 public class CustomItems1_15 {
 
-    public static ItemStack getItem(int textureid) {
+    public static ItemStack getItem(int textureId) {
         ItemStack item = new ItemStack(Material.STONE);
         ItemMeta meta = item.getItemMeta();
-        meta.setDisplayName("Quarries Item - " + textureid);
-        meta.setCustomModelData(textureid);
+        meta.setDisplayName("Quarries Item - " + textureId);
+        meta.setCustomModelData(textureId);
         item.setItemMeta(meta);
         return item;
     }
 
-    public static NBTTagCompound getItemNBT(int textureid) {
+    public static NBTTagCompound getItemNBT(int textureId) {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setString("id", "minecraft:stone");
         compound.setShort("Count", (short) 1);
 
         NBTTagCompound tag = new NBTTagCompound();
-        tag.setInt("CustomModelData", textureid);
+        tag.setInt("CustomModelData", textureId);
         compound.set("tag", tag);
 
         return compound;

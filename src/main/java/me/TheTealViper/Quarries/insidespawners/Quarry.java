@@ -1,6 +1,5 @@
 package me.TheTealViper.Quarries.insidespawners;
 
-import me.TheTealViper.Quarries.PluginFile;
 import me.TheTealViper.Quarries.Quarries;
 import me.TheTealViper.Quarries.misc.LocationSerializable;
 import me.TheTealViper.Quarries.outsidespawners.Marker;
@@ -13,15 +12,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class Quarry implements Serializable {
 	private static final long serialVersionUID = -983597691394166322L;
 	public static Map<Location, Quarry> DATABASE = new HashMap<>();
-	public static PluginFile PLUGINFILE = new PluginFile(Quarries.plugin, "data/quarrys");
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	public Location loc;
 	private LocationSerializable ls;
@@ -49,12 +45,6 @@ public class Quarry implements Serializable {
 	}
 
 	public static void onDisable() {
-		List<String> stringList = new ArrayList<>();
-		for (Quarry i : DATABASE.values()) {
-			stringList.add(Quarries.locToString(i.loc));
-		}
-		PLUGINFILE.set("locs", stringList);
-		PLUGINFILE.save();
 	}
 
 	public static Quarry getQuarry(Location loc) {

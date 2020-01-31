@@ -2,7 +2,11 @@
   <dictionary name="ishland">
     <words>
       <w>bukkit</w>
+      <w>chestplate</w>
+      <w>minecraft</w>
+      <w>spawner</w>
       <w>teleport</w>
+      <w>texid</w>
     </words>
   </dictionary>
 </component>
