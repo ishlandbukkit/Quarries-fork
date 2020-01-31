@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: io.paper:paper-1.15:b84">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/io/paper/paper-1.15/b84/paper-1.15-b84.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/io/paper/paper-1.15/b84/paper-1.15-b84-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/io/paper/paper-1.15/b84/paper-1.15-b84-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

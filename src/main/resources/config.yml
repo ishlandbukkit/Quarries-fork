@@ -1,0 +1,14 @@
+##########################################################
+#                   ViperFusion Config                   #
+##########################################################
+
+Marker_Check_Range: 500
+#This is the maximum range which upon placing a quarry,
+#for example, will check for markers from an initial marker.
+
+##########################################################
+#                        Version                         #
+##########################################################
+
+VERSION: 1
+#Do not touch this. No touchy.

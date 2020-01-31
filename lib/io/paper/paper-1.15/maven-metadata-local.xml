@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+    <groupId>io.paper</groupId>
+    <artifactId>paper-1.15</artifactId>
+    <versioning>
+        <release>b84</release>
+        <versions>
+            <version>b84</version>
+        </versions>
+        <lastUpdated>20200129152336</lastUpdated>
+    </versioning>
+</metadata>

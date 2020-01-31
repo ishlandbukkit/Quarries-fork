@@ -1,0 +1,9 @@
+name: "Quarries"
+authors:
+  - TheTealViper
+  - ishland
+version: ${project.version}
+api-version: "1.15"
+main: me.TheTealViper.Quarries.Quarries
+softdepend:
+  - Multiverse-Core
