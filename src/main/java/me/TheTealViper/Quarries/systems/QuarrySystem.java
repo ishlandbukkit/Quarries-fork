@@ -4,6 +4,7 @@ import me.TheTealViper.Quarries.CustomItems1_15;
 import me.TheTealViper.Quarries.Quarries;
 import me.TheTealViper.Quarries.insidespawners.Construction;
 import me.TheTealViper.Quarries.misc.LocationSerializable;
+import me.TheTealViper.Quarries.misc.VectorSerializable;
 import me.TheTealViper.Quarries.outsidespawners.Marker;
 import me.TheTealViper.Quarries.outsidespawners.QuarryArm;
 import org.bukkit.Bukkit;
@@ -13,6 +14,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Container;
 import org.bukkit.entity.Entity;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
@@ -20,24 +22,35 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.*;
+import java.lang.ref.SoftReference;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
-@SuppressWarnings("CanBeFinal")
+@SuppressWarnings({"CanBeFinal", "deprecation"})
 public class QuarrySystem implements Serializable {
     private static final long serialVersionUID = -3701643577709552290L;
-    public static Map<Location, QuarrySystem> DATABASE = new HashMap<>();
+    public static ConcurrentMap<Location, QuarrySystem> DATABASE = new ConcurrentHashMap<>();
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    public Block quarryBlock;
+    public transient Block quarryBlock;
+    public LocationSerializable quarryBlockLoc;
     public transient Location max, min;
     public boolean powered;
+    @SuppressWarnings("unused")
     public QuarrySystemType type;
-    public Vector miningArmShift;
+    public transient Vector miningArmShift;
     public boolean hitBedrock;
     public int mineDelay;
-    @SuppressWarnings("InstanceVariableMayNotBeInitializedByReadObject")
+    @SuppressWarnings({"InstanceVariableMayNotBeInitializedByReadObject", "unused"})
     public transient boolean isActive = false;
+    public transient boolean isAlive = true;
+    @SuppressWarnings({"FieldCanBeLocal", "unused"})
     private boolean hitAir;
     private LocationSerializable maxS, minS;
+    private VectorSerializable masS;
+    private transient List<SoftReference<QuarryArm>> arms = new ArrayList<>();
 
     public QuarrySystem(Block quarryBlock, Location max, Location min, boolean powered, QuarrySystemType type, Vector miningArmShift, boolean hitBedrock, int mineDelay) {
         DATABASE.put(quarryBlock.getLocation(), this);
@@ -49,13 +62,14 @@ public class QuarrySystem implements Serializable {
         this.miningArmShift = miningArmShift;
         this.hitBedrock = hitBedrock;
         this.mineDelay = mineDelay;
-
+        init();
     }
 
     public static void onEnable() {
         Quarries.plugin.getServer().getPluginManager().registerEvents(new QuarrySystem_Events(), Quarries.plugin);
     }
 
+    @SuppressWarnings("EmptyMethod")
     public static void onDisable() {
     }
 
@@ -78,30 +92,30 @@ public class QuarrySystem implements Serializable {
         }
         if (!face.equals(BlockFace.EAST)) {
             for (int i = 1; i <= Quarries.Marker_Check_Range; i++) {
-                Block tempblock = startingMarker.getRelative(BlockFace.WEST, i);
-                if (Marker.DATABASE.containsKey(tempblock.getLocation())) {
+                Block tempBlock = startingMarker.getRelative(BlockFace.WEST, i);
+                if (Marker.DATABASE.containsKey(tempBlock.getLocation())) {
 //					Bukkit.broadcastMessage("found!");
-                    foundMarkers.add(tempblock.getLocation());
+                    foundMarkers.add(tempBlock.getLocation());
                     break;
                 }
             }
         }
         if (!face.equals(BlockFace.SOUTH)) {
             for (int i = 1; i <= Quarries.Marker_Check_Range; i++) {
-                Block tempblock = startingMarker.getRelative(BlockFace.NORTH, i);
-                if (Marker.DATABASE.containsKey(tempblock.getLocation())) {
+                Block tempBlock = startingMarker.getRelative(BlockFace.NORTH, i);
+                if (Marker.DATABASE.containsKey(tempBlock.getLocation())) {
 //					Bukkit.broadcastMessage("found!");
-                    foundMarkers.add(tempblock.getLocation());
+                    foundMarkers.add(tempBlock.getLocation());
                     break;
                 }
             }
         }
         if (!face.equals(BlockFace.WEST)) {
             for (int i = 1; i <= Quarries.Marker_Check_Range; i++) {
-                Block tempblock = startingMarker.getRelative(BlockFace.EAST, i);
-                if (Marker.DATABASE.containsKey(tempblock.getLocation())) {
+                Block tempBlock = startingMarker.getRelative(BlockFace.EAST, i);
+                if (Marker.DATABASE.containsKey(tempBlock.getLocation())) {
 //					Bukkit.broadcastMessage("found!");
-                    foundMarkers.add(tempblock.getLocation());
+                    foundMarkers.add(tempBlock.getLocation());
                     break;
                 }
             }
@@ -163,29 +177,54 @@ public class QuarrySystem implements Serializable {
     private void writeObject(ObjectOutputStream out) throws IOException {
         maxS = LocationSerializable.parseLocation(max);
         minS = LocationSerializable.parseLocation(min);
+        masS = VectorSerializable.parseVector(miningArmShift);
+        quarryBlockLoc = LocationSerializable.parseLocation(quarryBlock.getLocation());
         out.defaultWriteObject();
+        List<QuarryArm> list = new ArrayList<>();
+        for (SoftReference<QuarryArm> ref : arms)
+            if (ref.get() != null)
+                list.add(ref.get());
+        out.writeObject(list);
     }
 
+    @SuppressWarnings("unchecked")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
+        List<QuarryArm> list = (List<QuarryArm>) in.readObject();
+        arms = new ArrayList<>();
+        for (QuarryArm arm : list)
+            if (QuarryArm.DATABASE.get(arm.loc) != null)
+                arms.add(new SoftReference<>(QuarryArm.DATABASE.get(arm.loc)));
         max = maxS.toLocation();
         min = minS.toLocation();
+        miningArmShift = masS.toVector();
+        quarryBlock = quarryBlockLoc.toLocation().getBlock();
         init();
+        isAlive = true;
+    }
+
+    @Override
+    protected void finalize() throws Throwable {
+        super.finalize();
+        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::destroy, 0);
     }
 
     public void init() {
-        final QuarrySystem QS = this;
-        final List<Integer> scheduleInt = new ArrayList<>();
+        QuarrySystem QS = this;
+        List<Integer> scheduleInt = new ArrayList<>();
         scheduleInt.add(Bukkit.getScheduler().scheduleSyncRepeatingTask(Quarries.plugin, () -> {
             if (QS.powered && !QS.hitBedrock && DATABASE.containsKey(quarryBlock.getLocation()))
                 mine();
-            else
+            else {
                 Bukkit.getScheduler().cancelTask(scheduleInt.get(0));
+                isActive = false;
+            }
         }, 0, QS.mineDelay));
         isActive = true;
     }
 
     public void destroy() {
+
         //Break construction blocks
         Vector delta = max.clone().subtract(min.clone()).toVector();
         Block constructionBlock;
@@ -242,11 +281,15 @@ public class QuarrySystem implements Serializable {
     public void mine() {
 //		Bukkit.broadcastMessage("mining");
 
+        //Check tool
+        ItemStack tool = getTool();
+        if (tool == null)
+            return;
+
         //Handle mining arm placement
         Vector delta = max.clone().subtract(min.clone()).toVector();
         Block constructionBlock = min.clone().add(1 + miningArmShift.getBlockX(), delta.getBlockY() - miningArmShift.getBlockY(), 1 + miningArmShift.getBlockZ()).getBlock();
-        Block oldCB = constructionBlock;
-//		ViperFusion.createConstruction(constructionBlock);
+        //		ViperFusion.createConstruction(constructionBlock);
 
         //Handle mining
         while (true) {
@@ -261,33 +304,52 @@ public class QuarrySystem implements Serializable {
                 constructionBlock = updateArm(delta);
             } else {
                 hitAir = false;
-                Collection<ItemStack> drops = new ArrayList<>(minedBlock.getDrops());
-                if (drops.size() == 0 && minedBlock.getType().equals(Material.STONE))
-                    drops.add(new ItemStack(Material.COBBLESTONE, 1));
-                minedBlock.setType(Material.AIR);
-                for (ItemStack item : drops) {
-                    handleMinedItem(item);
-                }
-
+                minedBlock.breakNaturally(tool, true);
                 constructionBlock = updateArm(delta);
                 break;
             }
         }
 
         // Update visual effects
+        List<Integer> nonProcessed = new ArrayList<>();
+        for (int y = max.getBlockY() - 1; y >= constructionBlock.getLocation().getBlockY(); y--)
+            nonProcessed.add(y);
+        Location newPos = constructionBlock.getLocation().clone();
+        newPos.setX(newPos.getX() + 0.5);
+        newPos.setZ(newPos.getZ() + 0.5);
+        for (SoftReference<QuarryArm> armRef : arms) {
+            QuarryArm arm = armRef.get();
+            if (arm != null) {
+                Entity blockEntity = Bukkit.getEntity(arm.uuid);
+                if (blockEntity == null) continue;
+                newPos.setY(blockEntity.getLocation().getBlockY());
+                blockEntity.teleport(newPos);
+                nonProcessed.remove(Integer.valueOf(blockEntity.getLocation().getBlockY()));
+            }
+        }
+        for (Integer y : nonProcessed)
+            arms.add(new SoftReference<>(new QuarryArm(newPos, null, true)));
+    }
+
+    @Deprecated
+    private void updateVisualOld(Block constructionBlock, Block oldCB) {
         for (int y = max.getBlockY() - 1; y >= constructionBlock.getLocation().getBlockY(); y--) {
             Location newPos = constructionBlock.getLocation().clone();
             Location oldPos = oldCB.getLocation().clone();
             // Optimization - teleport oldPos ones instead breaking them and create one
+            newPos.setX(newPos.getX() + 0.5);
+            newPos.setZ(newPos.getZ() + 0.5);
             newPos.setY(y);
             oldPos.setY(y);
+            oldPos.setX(oldPos.getX() + 0.5);
+            oldPos.setZ(oldPos.getZ() + 0.5);
             QuarryArm arm = QuarryArm.DATABASE.get(oldPos);
             if (arm != null) {
                 Entity blockEntity = Objects.requireNonNull(Bukkit.getEntity(arm.uuid));
                 blockEntity.teleport(newPos);
                 QuarryArm.DATABASE.put(newPos, QuarryArm.DATABASE.get(oldPos));
                 QuarryArm.DATABASE.remove(oldPos);
-            } else new QuarryArm(newPos, null, true);
+            } else arms.add(new SoftReference<>(new QuarryArm(newPos, null, true)));
         }
     }
 
@@ -303,6 +365,18 @@ public class QuarrySystem implements Serializable {
             }
         }
         return min.clone().add(1 + miningArmShift.getBlockX(), delta.getBlockY() - miningArmShift.getBlockY(), 1 + miningArmShift.getBlockZ()).getBlock();
+    }
+
+    private ItemStack getTool() {
+        Block toolContainer = quarryBlock.getRelative(BlockFace.UP);
+        if (toolContainer.getState() instanceof Container) {
+            Inventory inv = ((Container) toolContainer.getState()).getInventory();
+            for (ItemStack item : inv) {
+                if (item != null && !item.getType().equals(Material.AIR))
+                    return item;
+            }
+        }
+        return null;
     }
 
     public void handleMinedItem(ItemStack item) {
@@ -341,14 +415,6 @@ public class QuarrySystem implements Serializable {
                 c.getInventory().addItem(item);
             }
         }
-        testBlock = quarryBlock.getRelative(BlockFace.UP);
-        if (!handledAlready && testBlock.getState() instanceof Container) {
-            Container c = (Container) testBlock.getState();
-            if (c.getInventory().firstEmpty() != -1) {
-                handledAlready = true;
-                c.getInventory().addItem(item);
-            }
-        }
         testBlock = quarryBlock.getRelative(BlockFace.DOWN);
         if (!handledAlready && testBlock.getState() instanceof Container) {
             Container c = (Container) testBlock.getState();
@@ -364,26 +430,12 @@ public class QuarrySystem implements Serializable {
     }
 
     public void breakQuarryArms() {
-        boolean foundArm;
-        for (int y = max.getBlockY() - 1; y >= 0; y--) {
-            foundArm = false;
-            for (int x = min.getBlockX() + 1; x <= max.getBlockX() - 1; x++) {
-                for (int z = min.getBlockZ() + 1; z <= max.getBlockZ() - 1; z++) {
-                    Location loc = new Location(min.getWorld(), x, y, z);
-                    List<QuarryArm> dummy = new ArrayList<>(QuarryArm.DATABASE.values());
-                    for (QuarryArm arm : dummy) {
-                        if (arm.loc.equals(loc)) {
-                            arm.breakQuarryArm();
-                            foundArm = true;
-                        }
-                    }
-                }
-            }
-            if (!foundArm)
-                break;
-//			else
-//				Bukkit.broadcastMessage("found arm @ y=" + y);
-        }
+        for (SoftReference<QuarryArm> arm : arms)
+            Objects.requireNonNull(arm.get()).breakQuarryArm();
+        isAlive = false;
     }
 
+    public boolean checkAlive() {
+        return isAlive;
+    }
 }

@@ -9,15 +9,15 @@ import me.TheTealViper.Quarries.recipes.QuarryRecipe;
 import me.TheTealViper.Quarries.systems.QuarrySystem;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.IOException;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.logging.Level;
 
 public class Quarries extends JavaPlugin implements Listener {
@@ -27,21 +27,14 @@ public class Quarries extends JavaPlugin implements Listener {
     public static final int TEXID_QUARRY = 576161;
     public static final int TEXID_CONSTRUCTION = 296370;
     public static final int TEXID_QUARRYARM = 750566;
+    public static final String LOG_PREFIX = "[ViperFusion] ";
     //general
     public static Quarries plugin;
-    public static final String LOG_PREFIX = "[ViperFusion] ";
     public static VersionType version;
     //markers
     public static int Marker_Check_Range;
-
-    public static Location parseLoc(String s) {
-        String[] args = s.split(",");
-        return new Location(Bukkit.getWorld(args[0]), Double.parseDouble(args[1]), Double.parseDouble(args[2]), Double.parseDouble(args[3]));
-    }
-
-    public static String locToString(Location loc) {
-        return loc.getWorld().getName() + "," + ((int) loc.getX()) + "," + ((int) loc.getY()) + "," + ((int) loc.getZ());
-    }
+    //thread pool
+    public static ExecutorService pool = null;
 
     public static BlockFace getFacing(Player p) {
         float yaw = p.getLocation().getYaw();
@@ -98,7 +91,7 @@ public class Quarries extends JavaPlugin implements Listener {
             CustomSpawner1_15.createInsideSpawner(b, textureId);
     }
 
-    public static UUID createOutsideSpawner(Block b, Material replacementBlock, int textureId) {
+    public static UUID createOutsideSpawner(Block b, int textureId) {
         if (version == VersionType.v1_15_R1)
             return CustomSpawner1_15.createOutsideSpawner(b, textureId);
         else
@@ -106,16 +99,12 @@ public class Quarries extends JavaPlugin implements Listener {
     }
 
     public void onEnable() {
+        getLogger().info("Early initialization");
         plugin = this;
         saveDefaultConfig();
+        //Load values from config
+        Marker_Check_Range = getConfig().getInt("Marker_Check_Range");
         Bukkit.getPluginManager().registerEvents(plugin, plugin);
-
-        //Load data
-        try {
-            DataManager.reload();
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to init data storage");
-        }
 
         //Handle version
         String a = getServer().getClass().getPackage().getName();
@@ -123,10 +112,24 @@ public class Quarries extends JavaPlugin implements Listener {
         if (version.equalsIgnoreCase("v1_15_R1")) {
             Quarries.version = VersionType.v1_15_R1;
         }
+        getLogger().info("Detected server version: " + version);
 
-        //Load values from config
-        Marker_Check_Range = getConfig().getInt("Marker_Check_Range");
+        getLogger().info("Creating thread pool with size " + getConfig().getInt("Async_Threads", 8));
+        //Init pool
+        pool = Executors.newFixedThreadPool(getConfig().getInt("Async_Threads", 8));
 
+        getLogger().info("Reloading data from disk...");
+        //Load data
+        try {
+            DataManager.reload();
+        } catch (Exception e) {
+            throw new RuntimeException("Unable to init data storage", e);
+        }
+        DataManager.printStats();
+        getLogger().info("Reloaded data.");
+
+        getLogger().info("Enabling modules...");
+        DataManager.registerTask();
         //Enable block types
         Marker.onEnable();
         Quarry.onEnable();
@@ -134,6 +137,7 @@ public class Quarries extends JavaPlugin implements Listener {
         QuarrySystem.onEnable();
         QuarryArm.onEnable();
 
+        getLogger().info("Registering recipe...");
         //Register Recipes
         try {
             MarkerRecipe.register();
@@ -145,9 +149,11 @@ public class Quarries extends JavaPlugin implements Listener {
         } catch (Exception e) {
             getLogger().log(Level.WARNING, "Unable to register recipe", e);
         }
+        getLogger().info("Enabled");
     }
 
     public void onDisable() {
+        getLogger().info("Disabling modules...");
         //Disable block types
         Marker.onDisable();
         Quarry.onDisable();
@@ -155,12 +161,20 @@ public class Quarries extends JavaPlugin implements Listener {
         QuarrySystem.onDisable();
         QuarryArm.onDisable();
 
+        getLogger().info("Saving data...");
         //Save data
         try {
             DataManager.save();
-        } catch (IOException e) {
+        } catch (Exception e) {
             getLogger().log(Level.SEVERE, "Unable to save data", e);
         }
+        DataManager.printStats();
+
+        getLogger().info("Shutting down pool...");
+        //Shutdown pool
+        pool.shutdown();
+
+        getLogger().info("Disabled");
     }
 
 	/*

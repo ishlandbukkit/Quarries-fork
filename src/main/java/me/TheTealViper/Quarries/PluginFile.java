@@ -11,7 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Objects;
 
-@SuppressWarnings("CanBeFinal")
+@SuppressWarnings({"CanBeFinal", "unused"})
 public class PluginFile extends YamlConfiguration {
 
     private File file;
@@ -78,7 +78,6 @@ public class PluginFile extends YamlConfiguration {
         } catch (IOException | InvalidConfigurationException exception) {
             exception.printStackTrace();
             Bukkit.getServer().getConsoleSender().sendMessage(Quarries.LOG_PREFIX + "Error while loading file " + file.getName());
-
         }
 
     }

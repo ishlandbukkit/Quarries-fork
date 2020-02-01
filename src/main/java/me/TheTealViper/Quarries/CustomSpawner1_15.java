@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 
 import java.util.UUID;
 
+@SuppressWarnings("unused")
 public class CustomSpawner1_15 {
 
     public static void createInsideSpawner(Block b, int textureId) {
@@ -74,6 +75,7 @@ public class CustomSpawner1_15 {
         return e.getUniqueId();
     }
 
+    @SuppressWarnings("unused")
     public static void big(Player p) {
         Block b = p.getTargetBlock(null, 100);
         b.setType(Material.SPAWNER);

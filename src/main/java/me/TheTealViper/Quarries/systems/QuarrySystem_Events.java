@@ -1,18 +1,45 @@
 package me.TheTealViper.Quarries.systems;
 
+import me.TheTealViper.Quarries.Quarries;
+import org.bukkit.Location;
+import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.ItemSpawnEvent;
+import org.bukkit.inventory.ItemStack;
 
-import java.io.IOException;
+import java.util.Map;
 
 public class QuarrySystem_Events implements Listener {
 
     @EventHandler
-    public void onBreak(BlockBreakEvent e) throws IOException {
+    public void onBreak(BlockBreakEvent e) {
         if (QuarrySystem.DATABASE.containsKey(e.getBlock().getLocation())) {
             QuarrySystem.DATABASE.get(e.getBlock().getLocation()).destroy();
         }
+    }
+
+    @EventHandler
+    public void onItemSpawn(ItemSpawnEvent e) {
+        Item itemEntity = e.getEntity();
+        Location itemLoc = itemEntity.getLocation();
+        ItemStack item = itemEntity.getItemStack();
+        for (Map.Entry<Location, QuarrySystem> entry : QuarrySystem.DATABASE.entrySet())
+            Quarries.pool.execute(() -> {
+                QuarrySystem system = entry.getValue();
+                if (
+                        system.min.getX() < itemLoc.getX() &&
+                                system.min.getZ() < itemLoc.getZ() &&
+                                system.max.getX() > itemLoc.getX() &&
+                                system.max.getZ() > itemLoc.getZ() &&
+                                system.max.getY() > itemLoc.getY()
+                )
+                    Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, () -> {
+                        system.handleMinedItem(item);
+                        itemEntity.remove();
+                    }, 0);
+            });
     }
 
 }
