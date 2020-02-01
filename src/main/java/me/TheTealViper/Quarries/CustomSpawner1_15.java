@@ -35,15 +35,12 @@ public class CustomSpawner1_15 {
         spawnData.setInt("Invisible", 1);
         spawnData.setInt("Small", 0);
         spawnData.setInt("NoBasePlate", 0);
-        spawnData.setInt("ShowArms", 1);
+        spawnData.setInt("ShowArms", 0);
         spawnData.setInt("Marker", 1);
 
-        NBTTagList handList = new NBTTagList();
         NBTTagList armorList = new NBTTagList();
         NBTTagCompound mainHand = new NBTTagCompound();
         NBTTagCompound offHand = new NBTTagCompound();
-        handList.add(mainHand);
-        handList.add(offHand);
         NBTTagCompound helmet = CustomItems1_15.getItemNBT(textureId);
         NBTTagCompound chestplate = new NBTTagCompound();
         NBTTagCompound leggings = new NBTTagCompound();
@@ -93,15 +90,12 @@ public class CustomSpawner1_15 {
         spawnData.setInt("Invisible", 1);
         spawnData.setInt("Small", 0);
         spawnData.setInt("NoBasePlate", 0);
-        spawnData.setInt("ShowArms", 1);
+        spawnData.setInt("ShowArms", 0);
         spawnData.setInt("Marker", 1);
 
-        NBTTagList handList = new NBTTagList();
         NBTTagList armorList = new NBTTagList();
         NBTTagCompound mainHand = new NBTTagCompound();
         NBTTagCompound offHand = new NBTTagCompound();
-        handList.add(mainHand);
-        handList.add(offHand);
         NBTTagCompound helmet = CustomItems1_15.getItemNBT(Quarries.TEXID_MARKER);
         NBTTagCompound chestplate = new NBTTagCompound();
         NBTTagCompound leggings = new NBTTagCompound();
@@ -136,12 +130,9 @@ public class CustomSpawner1_15 {
         spawnData.setInt("NoBasePlate", 1);
         spawnData.setInt("ShowArms", 0);
 
-        NBTTagList handList = new NBTTagList();
         NBTTagList armorList = new NBTTagList();
         NBTTagCompound mainHand = new NBTTagCompound();
         NBTTagCompound offHand = new NBTTagCompound();
-        handList.add(mainHand);
-        handList.add(offHand);
         NBTTagCompound helmet = new NBTTagCompound();
         NBTTagCompound chestplate = new NBTTagCompound();
         NBTTagCompound leggings = new NBTTagCompound();
