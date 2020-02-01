@@ -4,16 +4,14 @@ import me.TheTealViper.Quarries.Quarries;
 import me.TheTealViper.Quarries.misc.LocationSerializable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.WorldCreator;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -28,10 +26,12 @@ public class QuarryArm implements Serializable {
     public UUID uuid;
     public transient boolean isAlive = true;
     private LocationSerializable ls;
+    private String world = "";
 
     public QuarryArm(Location loc, UUID uuid, boolean generateNew) {
         this.loc = loc;
         this.uuid = uuid;
+        this.world = loc.getWorld().getName();
         DATABASE.put(loc, this);
 
         if (generateNew)
@@ -64,13 +64,7 @@ public class QuarryArm implements Serializable {
     }
 
     public void breakQuarryArm() {
-        boolean isLoaded = loc.getChunk().isLoaded();
-        if (!isLoaded && !loc.getChunk().load()) {
-            Quarries.plugin.getLogger().warning(
-                    "Unable to load chunk " + loc.getChunk().getX() + "," + loc.getChunk().getZ() + ", task delayed.");
-            Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakQuarryArm, 1);
-            return;
-        }
+        Quarries.plugin.getServer().createWorld(new WorldCreator(world));
         Entity e = Bukkit.getEntity(uuid);
         if (e != null) e.remove();
         DATABASE.remove(loc);
@@ -80,10 +74,15 @@ public class QuarryArm implements Serializable {
         isAlive = false;
     }
 
+    public void breakObj() {
+        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakQuarryArm, 1);
+    }
+
     public boolean checkAlive() {
         try {
             ArmorStand armorStand = (ArmorStand) loc.getWorld().getEntity(uuid);
             assert armorStand != null;
+            /*
             ItemStack helmet = Objects.requireNonNull(armorStand.getEquipment()).getHelmet();
             assert helmet != null;
             ItemMeta meta = helmet.getItemMeta();
@@ -91,6 +90,8 @@ public class QuarryArm implements Serializable {
                 isAlive = false;
                 return false;
             }
+
+             */
         } catch (Exception e) {
             // If any line of code throw an exception, assume false
             isAlive = false;

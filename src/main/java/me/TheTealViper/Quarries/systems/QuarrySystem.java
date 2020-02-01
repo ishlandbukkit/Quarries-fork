@@ -10,6 +10,7 @@ import me.TheTealViper.Quarries.outsidespawners.QuarryArm;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.WorldCreator;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Container;
@@ -51,6 +52,7 @@ public class QuarrySystem implements Serializable {
     private LocationSerializable maxS, minS;
     private VectorSerializable masS;
     private transient List<SoftReference<QuarryArm>> arms = new ArrayList<>();
+    private String world;
 
     public QuarrySystem(Block quarryBlock, Location max, Location min, boolean powered, QuarrySystemType type, Vector miningArmShift, boolean hitBedrock, int mineDelay) {
         DATABASE.put(quarryBlock.getLocation(), this);
@@ -62,6 +64,7 @@ public class QuarrySystem implements Serializable {
         this.miningArmShift = miningArmShift;
         this.hitBedrock = hitBedrock;
         this.mineDelay = mineDelay;
+        this.world = max.getWorld().getName();
         init();
     }
 
@@ -79,6 +82,7 @@ public class QuarrySystem implements Serializable {
 
     public static void initCreateQuarrySystem(Block quarryBlock, Block startingMarker, BlockFace face) {
 //		Bukkit.broadcastMessage("checkRange:" + ViperFusion.Marker_Check_Range);
+        Quarries.plugin.getServer().createWorld(new WorldCreator(quarryBlock.getWorld().getName()));
         List<Location> foundMarkers = new ArrayList<>();
         if (!face.equals(BlockFace.NORTH)) {
             for (int i = 1; i <= Quarries.Marker_Check_Range; i++) {
@@ -224,7 +228,7 @@ public class QuarrySystem implements Serializable {
     }
 
     public void destroy() {
-
+        Quarries.plugin.getServer().createWorld(new WorldCreator(world));
         //Break construction blocks
         Vector delta = max.clone().subtract(min.clone()).toVector();
         Block constructionBlock;
@@ -280,7 +284,7 @@ public class QuarrySystem implements Serializable {
 
     public void mine() {
 //		Bukkit.broadcastMessage("mining");
-
+        Quarries.plugin.getServer().createWorld(new WorldCreator(world));
         //Check tool
         ItemStack tool = getTool();
         if (tool == null)
@@ -290,6 +294,7 @@ public class QuarrySystem implements Serializable {
         Vector delta = max.clone().subtract(min.clone()).toVector();
         Block constructionBlock = min.clone().add(1 + miningArmShift.getBlockX(), delta.getBlockY() - miningArmShift.getBlockY(), 1 + miningArmShift.getBlockZ()).getBlock();
         //		ViperFusion.createConstruction(constructionBlock);
+        Location oldCB = constructionBlock.getLocation();
 
         //Handle mining
         while (true) {
@@ -311,28 +316,14 @@ public class QuarrySystem implements Serializable {
         }
 
         // Update visual effects
-        List<Integer> nonProcessed = new ArrayList<>();
-        for (int y = max.getBlockY() - 1; y >= constructionBlock.getLocation().getBlockY(); y--)
-            nonProcessed.add(y);
-        Location newPos = constructionBlock.getLocation().clone();
-        newPos.setX(newPos.getX() + 0.5);
-        newPos.setZ(newPos.getZ() + 0.5);
-        for (SoftReference<QuarryArm> armRef : arms) {
-            QuarryArm arm = armRef.get();
-            if (arm != null) {
-                Entity blockEntity = Bukkit.getEntity(arm.uuid);
-                if (blockEntity == null) continue;
-                newPos.setY(blockEntity.getLocation().getBlockY());
-                blockEntity.teleport(newPos);
-                nonProcessed.remove(Integer.valueOf(blockEntity.getLocation().getBlockY()));
-            }
-        }
-        for (Integer y : nonProcessed)
-            arms.add(new SoftReference<>(new QuarryArm(newPos, null, true)));
+        updateVisual(constructionBlock, oldCB.getBlock());
     }
 
-    @Deprecated
-    private void updateVisualOld(Block constructionBlock, Block oldCB) {
+    public void breakObj() {
+        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::destroy, 1);
+    }
+
+    private void updateVisual(Block constructionBlock, Block oldCB) {
         for (int y = max.getBlockY() - 1; y >= constructionBlock.getLocation().getBlockY(); y--) {
             Location newPos = constructionBlock.getLocation().clone();
             Location oldPos = oldCB.getLocation().clone();
@@ -380,6 +371,7 @@ public class QuarrySystem implements Serializable {
     }
 
     public void handleMinedItem(ItemStack item) {
+        Quarries.plugin.getServer().createWorld(new WorldCreator(world));
         boolean handledAlready = false;
         Block testBlock;
 
@@ -438,4 +430,5 @@ public class QuarrySystem implements Serializable {
     public boolean checkAlive() {
         return isAlive;
     }
+
 }

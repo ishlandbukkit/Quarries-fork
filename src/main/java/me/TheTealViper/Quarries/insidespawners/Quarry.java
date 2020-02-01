@@ -4,21 +4,16 @@ import me.TheTealViper.Quarries.Quarries;
 import me.TheTealViper.Quarries.misc.LocationSerializable;
 import me.TheTealViper.Quarries.outsidespawners.Marker;
 import me.TheTealViper.Quarries.systems.QuarrySystem;
-import net.minecraft.server.v1_15_R1.BlockPosition;
-import net.minecraft.server.v1_15_R1.NBTTagCompound;
-import net.minecraft.server.v1_15_R1.NBTTagList;
-import net.minecraft.server.v1_15_R1.TileEntityMobSpawner;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.WorldCreator;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.craftbukkit.v1_15_R1.CraftWorld;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -30,9 +25,11 @@ public class Quarry implements Serializable {
     public transient Location loc;
     public transient boolean isAlive = true;
     private LocationSerializable ls;
+    private String world = "";
 
     public Quarry(Location loc, BlockFace face, boolean generateNew) {
         this.loc = loc;
+        this.world = loc.getWorld().getName();
         DATABASE.put(loc, this);
 
         if (generateNew) {
@@ -76,27 +73,27 @@ public class Quarry implements Serializable {
 
     public void breakQuarry() {
         DATABASE.remove(loc);
-        boolean isLoaded = loc.getChunk().isLoaded();
-        if (!isLoaded && !loc.getChunk().load()) {
-            Quarries.plugin.getLogger().warning(
-                    "Unable to load chunk " + loc.getChunk().getX() + "," + loc.getChunk().getZ() + ", task delayed.");
-            Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakQuarry, 1);
-            return;
-        }
+        Quarries.plugin.getServer().createWorld(new WorldCreator(world));
         loc.getBlock().setType(Material.AIR);
 
         loc = null;
         isAlive = false;
     }
 
+    public void breakObj() {
+        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakQuarry, 1);
+    }
+
     public boolean checkAlive() {
         try {
+            Quarries.plugin.getServer().createWorld(new WorldCreator(world));
             Block b = loc.getBlock();
             // Basic type detection
             if (!b.getType().equals(Material.SPAWNER)) {
                 isAlive = false;
                 return false;
             }
+            /*
             // Get nms spawner
             TileEntityMobSpawner spawner = (TileEntityMobSpawner) ((CraftWorld) b.getLocation().getWorld()).getHandle()
                     .getTileEntity(new BlockPosition(b.getLocation().getX(), b.getLocation().getY(), b.getLocation().getZ()));
@@ -132,6 +129,8 @@ public class Quarry implements Serializable {
                 isAlive = false;
                 return false;
             }
+
+             */
         } catch (Exception e) {
             // If any line of code throw an exception, assume false
             isAlive = false;
