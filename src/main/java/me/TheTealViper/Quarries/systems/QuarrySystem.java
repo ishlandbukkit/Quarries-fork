@@ -336,6 +336,10 @@ public class QuarrySystem implements Serializable {
             oldPos.setZ(oldPos.getZ() + 0.5);
             QuarryArm arm = QuarryArm.DATABASE.get(oldPos);
             if (arm != null) {
+                if (arm.uuid == null) {
+                    arm.breakQuarryArm();
+                    continue;
+                }
                 Entity blockEntity = Objects.requireNonNull(Bukkit.getEntity(arm.uuid));
                 blockEntity.teleport(newPos);
                 QuarryArm.DATABASE.put(newPos, QuarryArm.DATABASE.get(oldPos));

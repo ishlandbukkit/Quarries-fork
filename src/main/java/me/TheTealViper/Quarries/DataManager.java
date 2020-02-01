@@ -9,12 +9,7 @@ import me.TheTealViper.Quarries.systems.QuarrySystem;
 import org.bukkit.Location;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
@@ -132,11 +127,8 @@ public class DataManager {
             futures.add(Quarries.pool.submit(() -> {
                 try {
                     ObjectInputStream in = new ObjectInputStream(new FileInputStream(constructionData));
-                    ConcurrentMap<Location, Construction> data = new ConcurrentHashMap<>();
-                    for (ConcurrentMap.Entry<LocationSerializable, Construction> entry :
-                            ((ConcurrentMap<LocationSerializable, Construction>) in.readObject()).entrySet())
-                        data.put(entry.getKey().toLocation(), entry.getValue());
-                    Construction.DATABASE = data;
+                    ((Map<LocationSerializable, Construction>) in.readObject())
+                            .forEach((k, v) -> Construction.DATABASE.put(k.toLocation(), v));
                     in.close();
                 } catch (Exception e) {
                     Quarries.plugin.getLogger().log(Level.SEVERE, "Unable to load data", e);
@@ -147,11 +139,8 @@ public class DataManager {
             futures.add(Quarries.pool.submit(() -> {
                 try {
                     ObjectInputStream in = new ObjectInputStream(new FileInputStream(quarryData));
-                    ConcurrentMap<Location, Quarry> data = new ConcurrentHashMap<>();
-                    for (ConcurrentMap.Entry<LocationSerializable, Quarry> entry :
-                            ((ConcurrentMap<LocationSerializable, Quarry>) in.readObject()).entrySet())
-                        data.put(entry.getKey().toLocation(), entry.getValue());
-                    Quarry.DATABASE = data;
+                    ((Map<LocationSerializable, Quarry>) in.readObject())
+                            .forEach((k, v) -> Quarry.DATABASE.put(k.toLocation(), v));
                     in.close();
                 } catch (Exception e) {
                     Quarries.plugin.getLogger().log(Level.SEVERE, "Unable to load data", e);
@@ -162,11 +151,8 @@ public class DataManager {
             futures.add(Quarries.pool.submit(() -> {
                 try {
                     ObjectInputStream in = new ObjectInputStream(new FileInputStream(markerData));
-                    ConcurrentMap<Location, Marker> data = new ConcurrentHashMap<>();
-                    for (ConcurrentMap.Entry<LocationSerializable, Marker> entry :
-                            ((ConcurrentMap<LocationSerializable, Marker>) in.readObject()).entrySet())
-                        data.put(entry.getKey().toLocation(), entry.getValue());
-                    Marker.DATABASE = data;
+                    ((Map<LocationSerializable, Marker>) in.readObject())
+                            .forEach((k, v) -> Marker.DATABASE.put(k.toLocation(), v));
                     in.close();
                 } catch (Exception e) {
                     Quarries.plugin.getLogger().log(Level.SEVERE, "Unable to load data", e);
@@ -177,11 +163,8 @@ public class DataManager {
             futures.add(Quarries.pool.submit(() -> {
                 try {
                     ObjectInputStream in = new ObjectInputStream(new FileInputStream(quarryArmData));
-                    ConcurrentMap<Location, QuarryArm> data = new ConcurrentHashMap<>();
-                    for (ConcurrentMap.Entry<LocationSerializable, QuarryArm> entry :
-                            ((ConcurrentMap<LocationSerializable, QuarryArm>) in.readObject()).entrySet())
-                        data.put(entry.getKey().toLocation(), entry.getValue());
-                    QuarryArm.DATABASE = data;
+                    ((Map<LocationSerializable, QuarryArm>) in.readObject())
+                            .forEach((k, v) -> QuarryArm.DATABASE.put(k.toLocation(), v));
                     in.close();
                 } catch (Exception e) {
                     Quarries.plugin.getLogger().log(Level.SEVERE, "Unable to load data", e);
@@ -193,7 +176,8 @@ public class DataManager {
                 try {
                     futures.get(1).get();
                     ObjectInputStream in = new ObjectInputStream(new FileInputStream(quarrySystemData));
-                    QuarrySystem.DATABASE = (ConcurrentMap<Location, QuarrySystem>) in.readObject();
+                    ((Map<LocationSerializable, QuarrySystem>) in.readObject())
+                            .forEach((k, v) -> QuarrySystem.DATABASE.put(k.toLocation(), v));
                     in.close();
                 } catch (Exception e) {
                     Quarries.plugin.getLogger().log(Level.SEVERE, "Unable to load data", e);
@@ -211,10 +195,10 @@ public class DataManager {
         futures.add(Quarries.pool.submit(() -> {
             try {
                 ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(constructionData));
-                ConcurrentMap<LocationSerializable, Construction> data = new ConcurrentHashMap<>();
-                for (ConcurrentMap.Entry<Location, Construction> entry : Construction.DATABASE.entrySet())
-                    data.put(LocationSerializable.parseLocation(entry.getKey()), entry.getValue());
+                Map<LocationSerializable, Construction> data = new HashMap<>();
+                Construction.DATABASE.forEach((k, v) -> data.put(LocationSerializable.parseLocation(k), v));
                 out.writeObject(data);
+                out.flush();
                 out.close();
             } catch (Exception e) {
                 Quarries.plugin.getLogger().log(Level.SEVERE, "Unable to save data", e);
@@ -224,10 +208,10 @@ public class DataManager {
         futures.add(Quarries.pool.submit(() -> {
             try {
                 ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(quarryData));
-                ConcurrentMap<LocationSerializable, Quarry> data = new ConcurrentHashMap<>();
-                for (ConcurrentMap.Entry<Location, Quarry> entry : Quarry.DATABASE.entrySet())
-                    data.put(LocationSerializable.parseLocation(entry.getKey()), entry.getValue());
+                Map<LocationSerializable, Quarry> data = new HashMap<>();
+                Quarry.DATABASE.forEach((k, v) -> data.put(LocationSerializable.parseLocation(k), v));
                 out.writeObject(data);
+                out.flush();
                 out.close();
             } catch (Exception e) {
                 Quarries.plugin.getLogger().log(Level.SEVERE, "Unable to save data", e);
@@ -237,10 +221,10 @@ public class DataManager {
         futures.add(Quarries.pool.submit(() -> {
             try {
                 ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(markerData));
-                ConcurrentMap<LocationSerializable, Marker> data = new ConcurrentHashMap<>();
-                for (ConcurrentMap.Entry<Location, Marker> entry : Marker.DATABASE.entrySet())
-                    data.put(LocationSerializable.parseLocation(entry.getKey()), entry.getValue());
+                Map<LocationSerializable, Marker> data = new HashMap<>();
+                Marker.DATABASE.forEach((k, v) -> data.put(LocationSerializable.parseLocation(k), v));
                 out.writeObject(data);
+                out.flush();
                 out.close();
             } catch (Exception e) {
                 Quarries.plugin.getLogger().log(Level.SEVERE, "Unable to save data", e);
@@ -250,10 +234,10 @@ public class DataManager {
         futures.add(Quarries.pool.submit(() -> {
             try {
                 ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(quarryArmData));
-                ConcurrentMap<LocationSerializable, QuarryArm> data = new ConcurrentHashMap<>();
-                for (ConcurrentMap.Entry<Location, QuarryArm> entry : QuarryArm.DATABASE.entrySet())
-                    data.put(LocationSerializable.parseLocation(entry.getKey()), entry.getValue());
+                Map<LocationSerializable, QuarryArm> data = new HashMap<>();
+                QuarryArm.DATABASE.forEach((k, v) -> data.put(LocationSerializable.parseLocation(k), v));
                 out.writeObject(data);
+                out.flush();
                 out.close();
             } catch (Exception e) {
                 Quarries.plugin.getLogger().log(Level.SEVERE, "Unable to save data", e);
@@ -263,10 +247,10 @@ public class DataManager {
         futures.add(Quarries.pool.submit(() -> {
             try {
                 ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(quarrySystemData));
-                ConcurrentMap<LocationSerializable, QuarrySystem> dataaaaaaaa = new ConcurrentHashMap<>();
-                for (ConcurrentMap.Entry<Location, QuarrySystem> entry : QuarrySystem.DATABASE.entrySet())
-                    dataaaaaaaa.put(LocationSerializable.parseLocation(entry.getKey()), entry.getValue());
-                out.writeObject(dataaaaaaaa);
+                Map<LocationSerializable, QuarrySystem> data = new HashMap<>();
+                QuarrySystem.DATABASE.forEach((k, v) -> data.put(LocationSerializable.parseLocation(k), v));
+                out.writeObject(data);
+                out.flush();
                 out.close();
             } catch (Exception e) {
                 Quarries.plugin.getLogger().log(Level.SEVERE, "Unable to save data", e);

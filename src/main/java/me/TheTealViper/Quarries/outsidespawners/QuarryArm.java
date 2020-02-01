@@ -26,7 +26,7 @@ public class QuarryArm implements Serializable {
     public UUID uuid;
     public transient boolean isAlive = true;
     private LocationSerializable ls;
-    private String world = "";
+    private String world;
 
     public QuarryArm(Location loc, UUID uuid, boolean generateNew) {
         this.loc = loc;
@@ -65,8 +65,10 @@ public class QuarryArm implements Serializable {
 
     public void breakQuarryArm() {
         Quarries.plugin.getServer().createWorld(new WorldCreator(world));
-        Entity e = Bukkit.getEntity(uuid);
-        if (e != null) e.remove();
+        if (uuid != null) {
+            Entity e = Bukkit.getEntity(uuid);
+            if (e != null) e.remove();
+        }
         DATABASE.remove(loc);
 
         loc = null;
