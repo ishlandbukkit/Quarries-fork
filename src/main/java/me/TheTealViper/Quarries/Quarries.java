@@ -27,7 +27,6 @@ public class Quarries extends JavaPlugin implements Listener {
     public static final int TEXID_QUARRY = 576161;
     public static final int TEXID_CONSTRUCTION = 296370;
     public static final int TEXID_QUARRYARM = 750566;
-    public static final String LOG_PREFIX = "[ViperFusion] ";
     //general
     public static Quarries plugin;
     public static VersionType version;

@@ -20,12 +20,12 @@ import java.util.concurrent.ConcurrentMap;
 @SuppressWarnings("deprecation")
 public class Quarry implements Serializable {
     private static final long serialVersionUID = -983597691394166322L;
-    public static ConcurrentMap<Location, Quarry> DATABASE = new ConcurrentHashMap<>();
+    public static final ConcurrentMap<Location, Quarry> DATABASE = new ConcurrentHashMap<>();
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public transient Location loc;
     public transient boolean isAlive = true;
     private LocationSerializable ls;
-    private String world = "";
+    private final String world;
 
     public Quarry(Location loc, BlockFace face, boolean generateNew) {
         this.loc = loc;

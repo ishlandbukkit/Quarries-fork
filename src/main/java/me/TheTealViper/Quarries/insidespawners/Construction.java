@@ -18,12 +18,12 @@ import java.util.concurrent.ConcurrentMap;
 public class Construction implements Serializable {
 
     private static final long serialVersionUID = -8433317554699901583L;
-    public static ConcurrentMap<Location, Construction> DATABASE = new ConcurrentHashMap<>();
+    public static final ConcurrentMap<Location, Construction> DATABASE = new ConcurrentHashMap<>();
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public transient Location loc;
     public transient boolean isAlive = true;
     private LocationSerializable ls;
-    private String world = "";
+    private final String world;
 
     public Construction(Location loc, boolean generateNew) {
         this.loc = loc;

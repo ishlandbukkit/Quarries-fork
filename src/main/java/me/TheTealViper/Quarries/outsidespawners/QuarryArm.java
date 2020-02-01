@@ -20,13 +20,13 @@ import java.util.concurrent.ConcurrentMap;
 public class QuarryArm implements Serializable {
 
     private static final long serialVersionUID = 1004245770995582732L;
-    public static ConcurrentMap<Location, QuarryArm> DATABASE = new ConcurrentHashMap<>();
+    public static final ConcurrentMap<Location, QuarryArm> DATABASE = new ConcurrentHashMap<>();
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public transient Location loc;
     public UUID uuid;
     public transient boolean isAlive = true;
     private LocationSerializable ls;
-    private String world;
+    private final String world;
 
     public QuarryArm(Location loc, UUID uuid, boolean generateNew) {
         this.loc = loc;

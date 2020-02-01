@@ -19,13 +19,13 @@ import java.util.concurrent.ConcurrentMap;
 @SuppressWarnings("deprecation")
 public class Marker implements Listener, Serializable {
     private static final long serialVersionUID = 3511844179276547506L;
-    public static ConcurrentMap<Location, Marker> DATABASE = new ConcurrentHashMap<>();
+    public static final ConcurrentMap<Location, Marker> DATABASE = new ConcurrentHashMap<>();
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public transient Location loc;
     public UUID uuid;
     public transient boolean isAlive = true;
     private LocationSerializable ls;
-    private String world = "";
+    private final String world;
 
     public Marker(Location loc, UUID uuid, boolean generateNew) {
         this.loc = loc;
