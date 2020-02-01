@@ -2,13 +2,18 @@
 #                   ViperFusion Config                   #
 ##########################################################
 
+# This is the maximum range which upon placing a quarry,
+# for example, will check for markers from an initial marker.
 Marker_Check_Range: 500
-#This is the maximum range which upon placing a quarry,
-#for example, will check for markers from an initial marker.
+
+# This is the fixed size of threads to do async operations.
+# The recommended value is half of your physical cores
+# This value should not be lower than 1
+Async_Threads: 8
 
 ##########################################################
 #                        Version                         #
 ##########################################################
 
+# Do not touch this. Only for version upgrades.
 VERSION: 1
-#Do not touch this. No touchy.
