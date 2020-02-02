@@ -1,10 +1,10 @@
 package me.TheTealViper.Quarries;
 
-import me.TheTealViper.Quarries.insidespawners.Construction;
-import me.TheTealViper.Quarries.insidespawners.Quarry;
-import me.TheTealViper.Quarries.misc.LocationSerializable;
-import me.TheTealViper.Quarries.outsidespawners.Marker;
-import me.TheTealViper.Quarries.outsidespawners.QuarryArm;
+import me.TheTealViper.Quarries.blocks.Construction;
+import me.TheTealViper.Quarries.blocks.Marker;
+import me.TheTealViper.Quarries.blocks.Quarry;
+import me.TheTealViper.Quarries.entities.QuarryArm;
+import me.TheTealViper.Quarries.serializables.LocationSerializable;
 import me.TheTealViper.Quarries.systems.QuarrySystem;
 import org.bukkit.Location;
 

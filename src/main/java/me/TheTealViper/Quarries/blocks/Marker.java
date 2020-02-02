@@ -1,7 +1,8 @@
-package me.TheTealViper.Quarries.outsidespawners;
+package me.TheTealViper.Quarries.blocks;
 
 import me.TheTealViper.Quarries.Quarries;
-import me.TheTealViper.Quarries.misc.LocationSerializable;
+import me.TheTealViper.Quarries.blocks.listeners.MarkerListeners;
+import me.TheTealViper.Quarries.serializables.LocationSerializable;
 import org.bukkit.*;
 import org.bukkit.Particle.DustOptions;
 import org.bukkit.entity.ArmorStand;
@@ -46,7 +47,7 @@ public class Marker implements Listener, Serializable {
             }
         }, 0, 5);
 
-        Quarries.plugin.getServer().getPluginManager().registerEvents(new Marker_Events(), Quarries.plugin);
+        Quarries.plugin.getServer().getPluginManager().registerEvents(new MarkerListeners(), Quarries.plugin);
     }
 
     @SuppressWarnings("EmptyMethod")

@@ -1,5 +1,6 @@
-package me.TheTealViper.Quarries;
+package me.TheTealViper.Quarries.nms.nms1_15;
 
+import me.TheTealViper.Quarries.Quarries;
 import net.minecraft.server.v1_15_R1.BlockPosition;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import net.minecraft.server.v1_15_R1.NBTTagList;

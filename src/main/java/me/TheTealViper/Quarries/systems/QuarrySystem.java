@@ -1,12 +1,14 @@
 package me.TheTealViper.Quarries.systems;
 
-import me.TheTealViper.Quarries.CustomItems1_15;
 import me.TheTealViper.Quarries.Quarries;
-import me.TheTealViper.Quarries.insidespawners.Construction;
-import me.TheTealViper.Quarries.misc.LocationSerializable;
-import me.TheTealViper.Quarries.misc.VectorSerializable;
-import me.TheTealViper.Quarries.outsidespawners.Marker;
-import me.TheTealViper.Quarries.outsidespawners.QuarryArm;
+import me.TheTealViper.Quarries.blocks.Construction;
+import me.TheTealViper.Quarries.blocks.Marker;
+import me.TheTealViper.Quarries.entities.QuarryArm;
+import me.TheTealViper.Quarries.nms.nms1_15.CustomItems1_15;
+import me.TheTealViper.Quarries.serializables.LocationSerializable;
+import me.TheTealViper.Quarries.serializables.VectorSerializable;
+import me.TheTealViper.Quarries.systems.enums.QuarrySystemTypes;
+import me.TheTealViper.Quarries.systems.listeners.QuarrySystemListeners;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -40,7 +42,7 @@ public class QuarrySystem implements Serializable {
     public transient Location max, min;
     public boolean powered;
     @SuppressWarnings("unused")
-    public QuarrySystemType type;
+    public QuarrySystemTypes type;
     public transient Vector miningArmShift;
     public boolean hitBedrock;
     public int mineDelay;
@@ -54,7 +56,7 @@ public class QuarrySystem implements Serializable {
     private transient List<SoftReference<QuarryArm>> arms = new ArrayList<>();
     private String world;
 
-    public QuarrySystem(Block quarryBlock, Location max, Location min, boolean powered, QuarrySystemType type, Vector miningArmShift, boolean hitBedrock, int mineDelay) {
+    public QuarrySystem(Block quarryBlock, Location max, Location min, boolean powered, QuarrySystemTypes type, Vector miningArmShift, boolean hitBedrock, int mineDelay) {
         DATABASE.put(quarryBlock.getLocation(), this);
         this.quarryBlock = quarryBlock;
         this.max = max;
@@ -69,14 +71,14 @@ public class QuarrySystem implements Serializable {
     }
 
     public static void onEnable() {
-        Quarries.plugin.getServer().getPluginManager().registerEvents(new QuarrySystem_Events(), Quarries.plugin);
+        Quarries.plugin.getServer().getPluginManager().registerEvents(new QuarrySystemListeners(), Quarries.plugin);
     }
 
     @SuppressWarnings("EmptyMethod")
     public static void onDisable() {
     }
 
-    public static QuarrySystem createQuarrySystem(Block quarryBlock, Location max, Location min, QuarrySystemType type) {
+    public static QuarrySystem createQuarrySystem(Block quarryBlock, Location max, Location min, QuarrySystemTypes type) {
         return new QuarrySystem(quarryBlock, max, min, true, type, new Vector(0, 1, 0), false, 4);
     }
 
@@ -173,7 +175,7 @@ public class QuarrySystem implements Serializable {
             new Construction(constructionBlock.getLocation(), true);
 
             //Handle creating QuarrySystem
-            QuarrySystem QS = QuarrySystem.createQuarrySystem(quarryBlock, max, min, QuarrySystemType.Default);
+            QuarrySystem QS = QuarrySystem.createQuarrySystem(quarryBlock, max, min, QuarrySystemTypes.Default);
             QuarrySystem.DATABASE.put(QS.quarryBlock.getLocation(), QS);
         }
     }

@@ -1,14 +1,12 @@
-package me.TheTealViper.Quarries.insidespawners;
+package me.TheTealViper.Quarries.blocks;
 
 import me.TheTealViper.Quarries.Quarries;
-import me.TheTealViper.Quarries.misc.LocationSerializable;
-import me.TheTealViper.Quarries.outsidespawners.Marker;
-import me.TheTealViper.Quarries.systems.QuarrySystem;
+import me.TheTealViper.Quarries.blocks.listeners.ConstructionListeners;
+import me.TheTealViper.Quarries.serializables.LocationSerializable;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldCreator;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -18,46 +16,46 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
 @SuppressWarnings("deprecation")
-public class Quarry implements Serializable {
-    private static final long serialVersionUID = -983597691394166322L;
-    public static final ConcurrentMap<Location, Quarry> DATABASE = new ConcurrentHashMap<>();
+public class Construction implements Serializable {
+
+    private static final long serialVersionUID = -8433317554699901583L;
+    public static final ConcurrentMap<Location, Construction> DATABASE = new ConcurrentHashMap<>();
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public transient Location loc;
     public transient boolean isAlive = true;
     private LocationSerializable ls;
     private final String world;
 
-    public Quarry(Location loc, BlockFace face, boolean generateNew) {
+    public Construction(Location loc, boolean generateNew) {
         this.loc = loc;
         this.world = loc.getWorld().getName();
         DATABASE.put(loc, this);
 
-        if (generateNew) {
-            Quarries.createInsideSpawner(loc.getBlock(), Integer.parseInt(Quarries.TEXID_QUARRY + Quarries.facingToAddedInt(face)));
-
-            if (Marker.DATABASE.containsKey(loc.getBlock().getRelative(BlockFace.NORTH).getLocation()))
-                QuarrySystem.initCreateQuarrySystem(loc.getBlock(), loc.getBlock().getRelative(BlockFace.NORTH), BlockFace.NORTH);
-            else if (Marker.DATABASE.containsKey(loc.getBlock().getRelative(BlockFace.EAST).getLocation()))
-                QuarrySystem.initCreateQuarrySystem(loc.getBlock(), loc.getBlock().getRelative(BlockFace.EAST), BlockFace.EAST);
-            else if (Marker.DATABASE.containsKey(loc.getBlock().getRelative(BlockFace.SOUTH).getLocation()))
-                QuarrySystem.initCreateQuarrySystem(loc.getBlock(), loc.getBlock().getRelative(BlockFace.SOUTH), BlockFace.SOUTH);
-            else if (Marker.DATABASE.containsKey(loc.getBlock().getRelative(BlockFace.WEST).getLocation()))
-                QuarrySystem.initCreateQuarrySystem(loc.getBlock(), loc.getBlock().getRelative(BlockFace.WEST), BlockFace.WEST);
-        }
+        if (generateNew)
+            Quarries.createInsideSpawner(loc.getBlock(), Quarries.TEXID_CONSTRUCTION);
     }
 
     public static void onEnable() {
-        Quarries.plugin.getServer().getPluginManager().registerEvents(new Quarry_Events(), Quarries.plugin);
+        Quarries.plugin.getServer().getPluginManager().registerEvents(new ConstructionListeners(), Quarries.plugin);
     }
 
     @SuppressWarnings("EmptyMethod")
     public static void onDisable() {
+
+    }
+
+    public static Construction getConstruction(Location loc) {
+        return DATABASE.get(loc);
     }
 
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakQuarry, 0);
+        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakConstruction, 1);
+    }
+
+    public void breakObj() {
+        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakConstruction, 1);
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
@@ -71,17 +69,12 @@ public class Quarry implements Serializable {
         isAlive = true;
     }
 
-    public void breakQuarry() {
+    public void breakConstruction() {
         DATABASE.remove(loc);
         Quarries.plugin.getServer().createWorld(new WorldCreator(world));
         loc.getBlock().setType(Material.AIR);
 
         loc = null;
-        isAlive = false;
-    }
-
-    public void breakObj() {
-        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakQuarry, 1);
     }
 
     public boolean checkAlive() {
@@ -125,14 +118,14 @@ public class Quarry implements Serializable {
                 isAlive = false;
                 return false;
             }
-            if (Objects.equals(tag.getInt("CustomModelData"), Quarries.TEXID_QUARRY)) {
+            if (Objects.equals(tag.getInt("CustomModelData"), Quarries.TEXID_CONSTRUCTION)) {
                 isAlive = false;
                 return false;
             }
-
-             */
+            */
         } catch (Exception e) {
             // If any line of code throw an exception, assume false
+            Quarries.plugin.getLogger().warning(e.getMessage() + ", not alive");
             isAlive = false;
             return false;
         }

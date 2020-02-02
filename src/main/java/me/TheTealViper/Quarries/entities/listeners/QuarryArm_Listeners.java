@@ -1,6 +1,7 @@
-package me.TheTealViper.Quarries.outsidespawners;
+package me.TheTealViper.Quarries.entities.listeners;
 
 import me.TheTealViper.Quarries.Quarries;
+import me.TheTealViper.Quarries.entities.QuarryArm;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -8,7 +9,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-public class QuarryArm_Events implements Listener {
+public class QuarryArm_Listeners implements Listener {
 
     @EventHandler
     public void onBreak(BlockBreakEvent e) {

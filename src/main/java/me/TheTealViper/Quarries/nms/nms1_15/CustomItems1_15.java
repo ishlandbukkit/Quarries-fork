@@ -1,4 +1,4 @@
-package me.TheTealViper.Quarries;
+package me.TheTealViper.Quarries.nms.nms1_15;
 
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import org.bukkit.Material;

@@ -1,7 +1,8 @@
-package me.TheTealViper.Quarries.outsidespawners;
+package me.TheTealViper.Quarries.entities;
 
 import me.TheTealViper.Quarries.Quarries;
-import me.TheTealViper.Quarries.misc.LocationSerializable;
+import me.TheTealViper.Quarries.entities.listeners.QuarryArm_Listeners;
+import me.TheTealViper.Quarries.serializables.LocationSerializable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.WorldCreator;
@@ -39,7 +40,7 @@ public class QuarryArm implements Serializable {
     }
 
     public static void onEnable() {
-        Quarries.plugin.getServer().getPluginManager().registerEvents(new QuarryArm_Events(), Quarries.plugin);
+        Quarries.plugin.getServer().getPluginManager().registerEvents(new QuarryArm_Listeners(), Quarries.plugin);
     }
 
     @SuppressWarnings("EmptyMethod")

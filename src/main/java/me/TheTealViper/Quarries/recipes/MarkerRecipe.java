@@ -1,6 +1,6 @@
 package me.TheTealViper.Quarries.recipes;
 
-import me.TheTealViper.Quarries.CustomItems1_15;
+import me.TheTealViper.Quarries.nms.nms1_15.CustomItems1_15;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;

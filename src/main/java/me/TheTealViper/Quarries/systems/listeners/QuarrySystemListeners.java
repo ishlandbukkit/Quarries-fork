@@ -1,6 +1,7 @@
-package me.TheTealViper.Quarries.systems;
+package me.TheTealViper.Quarries.systems.listeners;
 
 import me.TheTealViper.Quarries.Quarries;
+import me.TheTealViper.Quarries.systems.QuarrySystem;
 import org.bukkit.Location;
 import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
@@ -11,7 +12,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Map;
 
-public class QuarrySystem_Events implements Listener {
+public class QuarrySystemListeners implements Listener {
 
     @EventHandler
     public void onBreak(BlockBreakEvent e) {

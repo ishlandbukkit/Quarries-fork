@@ -1,4 +1,4 @@
-package me.TheTealViper.Quarries.misc;
+package me.TheTealViper.Quarries.serializables;
 
 import org.bukkit.util.Vector;
 

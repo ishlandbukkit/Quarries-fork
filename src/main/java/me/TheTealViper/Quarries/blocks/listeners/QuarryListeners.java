@@ -1,7 +1,8 @@
-package me.TheTealViper.Quarries.insidespawners;
+package me.TheTealViper.Quarries.blocks.listeners;
 
 import me.TheTealViper.Quarries.Quarries;
-import me.TheTealViper.Quarries.VersionType;
+import me.TheTealViper.Quarries.blocks.Quarry;
+import me.TheTealViper.Quarries.nms.ServerVersions;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -11,7 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Quarry_Events implements Listener {
+public class QuarryListeners implements Listener {
 
     @EventHandler
     public void onBreak(BlockBreakEvent e) {
@@ -35,7 +36,7 @@ public class Quarry_Events implements Listener {
         if (item.hasItemMeta() && item.getItemMeta().hasCustomModelData() &&
                 item.getItemMeta().getCustomModelData() == Quarries.TEXID_QUARRY) {
 //				e.setCancelled(true);
-            if (Quarries.version == VersionType.v1_15_R1) {
+            if (Quarries.version == ServerVersions.v1_15_R1) {
                 new Quarry(e.getBlockPlaced().getLocation(), Quarries.getFacing(e.getPlayer()), true);
             }
         }
