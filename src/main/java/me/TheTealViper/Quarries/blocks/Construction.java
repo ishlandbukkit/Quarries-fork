@@ -18,13 +18,13 @@ import java.util.concurrent.ConcurrentMap;
 @SuppressWarnings("deprecation")
 public class Construction implements Serializable {
 
-    private static final long serialVersionUID = -8433317554699901583L;
     public static final ConcurrentMap<Location, Construction> DATABASE = new ConcurrentHashMap<>();
+    private static final long serialVersionUID = -8433317554699901583L;
+    private final String world;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public transient Location loc;
     public transient boolean isAlive = true;
     private LocationSerializable ls;
-    private final String world;
 
     public Construction(Location loc, boolean generateNew) {
         this.loc = loc;
@@ -70,9 +70,17 @@ public class Construction implements Serializable {
     }
 
     public void breakConstruction() {
-        DATABASE.remove(loc);
-        Quarries.plugin.getServer().createWorld(new WorldCreator(world));
-        loc.getBlock().setType(Material.AIR);
+        if (loc != null) {
+            DATABASE.remove(loc);
+            loc = null;
+        }
+        if (!isAlive) return;
+        try {
+            Quarries.plugin.getServer().createWorld(new WorldCreator(world));
+            loc.getBlock().setType(Material.AIR);
+        } catch (IllegalArgumentException e) {
+            breakObj(); // Try to hunt with "world unloaded"
+        }
 
         loc = null;
     }

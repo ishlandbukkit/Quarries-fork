@@ -19,14 +19,14 @@ import java.util.concurrent.ConcurrentMap;
 
 @SuppressWarnings("deprecation")
 public class Marker implements Listener, Serializable {
-    private static final long serialVersionUID = 3511844179276547506L;
     public static final ConcurrentMap<Location, Marker> DATABASE = new ConcurrentHashMap<>();
+    private static final long serialVersionUID = 3511844179276547506L;
+    private final String world;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public transient Location loc;
     public UUID uuid;
     public transient boolean isAlive = true;
     private LocationSerializable ls;
-    private final String world;
 
     public Marker(Location loc, UUID uuid, boolean generateNew) {
         this.loc = loc;
@@ -76,11 +76,19 @@ public class Marker implements Listener, Serializable {
     }
 
     public void breakMarker() {
-        Quarries.plugin.getServer().createWorld(new WorldCreator(world));
-        Entity e = Bukkit.getEntity(uuid);
-        if (e != null) e.remove();
-        DATABASE.remove(loc);
-        loc.getBlock().setType(Material.AIR);
+        if (loc != null) {
+            DATABASE.remove(loc);
+            loc = null;
+        }
+        if (!isAlive) return;
+        try {
+            Quarries.plugin.getServer().createWorld(new WorldCreator(world));
+            Entity e = Bukkit.getEntity(uuid);
+            if (e != null) e.remove();
+            loc.getBlock().setType(Material.AIR);
+        } catch (IllegalArgumentException e) {
+            breakObj(); // Try to hunt with "world unloaded"
+        }
 
         loc = null;
         uuid = null;
