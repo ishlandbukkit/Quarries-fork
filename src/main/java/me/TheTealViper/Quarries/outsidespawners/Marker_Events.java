@@ -17,11 +17,13 @@ public class Marker_Events implements Listener {
     @EventHandler
     public void onBreak(BlockBreakEvent e) {
         List<Marker> dummy = new ArrayList<>(Marker.DATABASE.values());
-        for (Marker marker : dummy) {
-            if (e.getBlock().getLocation().equals(marker.loc)) {
-                marker.breakMarker();
+        Quarries.pool.execute(() -> {
+            for (Marker marker : dummy) {
+                if (e.getBlock().getLocation().equals(marker.loc)) {
+                    Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, marker::breakMarker, 1);
+                }
             }
-        }
+        });
     }
 
     @EventHandler
@@ -31,13 +33,12 @@ public class Marker_Events implements Listener {
 
         // NotNull
         ItemStack item = e.getItemInHand();
-        if (item.hasItemMeta() && item.getItemMeta().hasCustomModelData()) {
-            if (item.getItemMeta().getCustomModelData() == Quarries.TEXID_MARKER) {
+        if (item.hasItemMeta() && item.getItemMeta().hasCustomModelData() &&
+                item.getItemMeta().getCustomModelData() == Quarries.TEXID_MARKER) {
 //				e.setCancelled(true);
-                if (Quarries.version == VersionType.v1_15_R1) {
-                    Block b = e.getBlockPlaced();
-                    new Marker(b.getLocation(), null, true);
-                }
+            if (Quarries.version == VersionType.v1_15_R1) {
+                Block b = e.getBlockPlaced();
+                new Marker(b.getLocation(), null, true);
             }
         }
     }

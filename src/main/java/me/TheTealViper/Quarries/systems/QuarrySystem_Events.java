@@ -25,21 +25,24 @@ public class QuarrySystem_Events implements Listener {
         Item itemEntity = e.getEntity();
         Location itemLoc = itemEntity.getLocation();
         ItemStack item = itemEntity.getItemStack();
-        for (Map.Entry<Location, QuarrySystem> entry : QuarrySystem.DATABASE.entrySet())
-            Quarries.pool.execute(() -> {
-                QuarrySystem system = entry.getValue();
-                if (
-                        system.min.getX() < itemLoc.getX() &&
-                                system.min.getZ() < itemLoc.getZ() &&
-                                system.max.getX() > itemLoc.getX() &&
-                                system.max.getZ() > itemLoc.getZ() &&
-                                system.max.getY() > itemLoc.getY()
-                )
-                    Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, () -> {
-                        system.handleMinedItem(item);
-                        itemEntity.remove();
-                    }, 0);
-            });
+        Quarries.pool.execute(() ->
+        {
+            for (Map.Entry<Location, QuarrySystem> entry : QuarrySystem.DATABASE.entrySet())
+                Quarries.pool.execute(() -> {
+                    QuarrySystem system = entry.getValue();
+                    if (
+                            system.min.getX() < itemLoc.getX() &&
+                                    system.min.getZ() < itemLoc.getZ() &&
+                                    system.max.getX() > itemLoc.getX() &&
+                                    system.max.getZ() > itemLoc.getZ() &&
+                                    system.max.getY() > itemLoc.getY()
+                    )
+                        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, () -> {
+                            system.handleMinedItem(item);
+                            itemEntity.remove();
+                        }, 0);
+                });
+        });
     }
 
 }

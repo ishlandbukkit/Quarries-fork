@@ -1,5 +1,6 @@
 package me.TheTealViper.Quarries.outsidespawners;
 
+import me.TheTealViper.Quarries.Quarries;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -12,11 +13,13 @@ public class QuarryArm_Events implements Listener {
     @EventHandler
     public void onBreak(BlockBreakEvent e) {
         List<QuarryArm> dummy = new ArrayList<>(QuarryArm.DATABASE.values());
-        for (QuarryArm arm : dummy) {
-            if (e.getBlock().getLocation().equals(arm.loc)) {
-                arm.breakQuarryArm();
+        Quarries.pool.execute(() -> {
+            for (QuarryArm arm : dummy) {
+                if (e.getBlock().getLocation().equals(arm.loc)) {
+                    Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, arm::breakQuarryArm, 1);
+                }
             }
-        }
+        });
     }
 
 }

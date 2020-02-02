@@ -19,14 +19,14 @@ import java.util.concurrent.ConcurrentMap;
 @SuppressWarnings("deprecation")
 public class QuarryArm implements Serializable {
 
-    private static final long serialVersionUID = 1004245770995582732L;
     public static final ConcurrentMap<Location, QuarryArm> DATABASE = new ConcurrentHashMap<>();
+    private static final long serialVersionUID = 1004245770995582732L;
+    private final String world;
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public transient Location loc;
     public UUID uuid;
     public transient boolean isAlive = true;
     private LocationSerializable ls;
-    private final String world;
 
     public QuarryArm(Location loc, UUID uuid, boolean generateNew) {
         this.loc = loc;
@@ -69,7 +69,8 @@ public class QuarryArm implements Serializable {
             Entity e = Bukkit.getEntity(uuid);
             if (e != null) e.remove();
         }
-        DATABASE.remove(loc);
+        if (loc != null)
+            DATABASE.remove(loc);
 
         loc = null;
         uuid = null;

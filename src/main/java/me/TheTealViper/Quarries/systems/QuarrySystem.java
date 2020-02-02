@@ -279,7 +279,7 @@ public class QuarrySystem implements Serializable {
         DATABASE.remove(quarryBlock.getLocation());
 
         // Linus drop tips
-        quarryBlock.getLocation().getWorld().dropItem(quarryBlock.getLocation(), CustomItems1_15.getItem(576161));
+        quarryBlock.getLocation().getWorld().dropItem(quarryBlock.getLocation(), CustomItems1_15.getItem(Quarries.TEXID_QUARRY));
     }
 
     public void mine() {
@@ -366,10 +366,7 @@ public class QuarrySystem implements Serializable {
         Block toolContainer = quarryBlock.getRelative(BlockFace.UP);
         if (toolContainer.getState() instanceof Container) {
             Inventory inv = ((Container) toolContainer.getState()).getInventory();
-            for (ItemStack item : inv) {
-                if (item != null && !item.getType().equals(Material.AIR))
-                    return item;
-            }
+            return inv.getItem(0);
         }
         return null;
     }
@@ -404,14 +401,6 @@ public class QuarrySystem implements Serializable {
             }
         }
         testBlock = quarryBlock.getRelative(BlockFace.WEST);
-        if (!handledAlready && testBlock.getState() instanceof Container) {
-            Container c = (Container) testBlock.getState();
-            if (c.getInventory().firstEmpty() != -1) {
-                handledAlready = true;
-                c.getInventory().addItem(item);
-            }
-        }
-        testBlock = quarryBlock.getRelative(BlockFace.DOWN);
         if (!handledAlready && testBlock.getState() instanceof Container) {
             Container c = (Container) testBlock.getState();
             if (c.getInventory().firstEmpty() != -1) {
