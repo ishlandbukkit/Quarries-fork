@@ -1,4 +1,4 @@
-package me.TheTealViper.Quarries.nms.nms1_15;
+package me.TheTealViper.Quarries.nms.v1_15_R1;
 
 import me.TheTealViper.Quarries.Quarries;
 import net.minecraft.server.v1_15_R1.BlockPosition;
@@ -19,7 +19,7 @@ import java.util.UUID;
 @SuppressWarnings("unused")
 public class CustomSpawner1_15 {
 
-    public static void createInsideSpawner(Block b, int textureId) {
+    public static void createBlock(Block b, int textureId) {
         b.getWorld().playSound(b.getLocation(), Sound.BLOCK_WOOD_PLACE, 1, 1);
         b.setType(Material.SPAWNER);
         CreatureSpawner cs = (CreatureSpawner) b.getState();
@@ -57,7 +57,7 @@ public class CustomSpawner1_15 {
         b.getState().update();
     }
 
-    public static UUID createOutsideSpawner(Block b, int textureId) {
+    public static UUID createEntity(Block b, int textureId) {
         // b.getWorld().playSound(b.getLocation(), Sound.BLOCK_STONE_BREAK, 1, 1);
         // b.setType(replacementBlock);
         ArmorStand e = (ArmorStand) b.getWorld().spawnEntity(b.getLocation().clone().add(.5, 0, .5), EntityType.ARMOR_STAND);

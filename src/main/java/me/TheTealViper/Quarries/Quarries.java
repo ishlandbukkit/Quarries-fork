@@ -5,7 +5,7 @@ import me.TheTealViper.Quarries.blocks.Marker;
 import me.TheTealViper.Quarries.blocks.Quarry;
 import me.TheTealViper.Quarries.entities.QuarryArm;
 import me.TheTealViper.Quarries.nms.ServerVersions;
-import me.TheTealViper.Quarries.nms.nms1_15.CustomSpawner1_15;
+import me.TheTealViper.Quarries.nms.v1_15_R1.CustomSpawner1_15;
 import me.TheTealViper.Quarries.recipes.MarkerRecipe;
 import me.TheTealViper.Quarries.recipes.QuarryRecipe;
 import me.TheTealViper.Quarries.systems.QuarrySystem;
@@ -89,12 +89,12 @@ public class Quarries extends JavaPlugin implements Listener {
 
     public static void createInsideSpawner(Block b, int textureId) {
         if (version == ServerVersions.v1_15_R1)
-            CustomSpawner1_15.createInsideSpawner(b, textureId);
+            CustomSpawner1_15.createBlock(b, textureId);
     }
 
     public static UUID createOutsideSpawner(Block b, int textureId) {
         if (version == ServerVersions.v1_15_R1)
-            return CustomSpawner1_15.createOutsideSpawner(b, textureId);
+            return CustomSpawner1_15.createEntity(b, textureId);
         else
             return null;
     }
