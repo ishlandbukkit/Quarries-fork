@@ -26,10 +26,10 @@ import java.util.logging.Level;
 public class Quarries extends JavaPlugin implements Listener {
     //Item ID's
     //1 is north version, 2 is east version, 3 is south version, 4 is west version
-    public static final int TEXID_MARKER = 332447;
-    public static final int TEXID_QUARRY = 576161;
-    public static final int TEXID_CONSTRUCTION = 296370;
-    public static final int TEXID_QUARRYARM = 750566;
+    public static final int TEXID_MARKER = 600020;
+    public static final int TEXID_QUARRY = 600030;
+    public static final int TEXID_CONSTRUCTION = 600010;
+    public static final int TEXID_QUARRYARM = 600040;
     //general
     public static Quarries plugin;
     public static ServerVersions version;
@@ -65,17 +65,16 @@ public class Quarries extends JavaPlugin implements Listener {
 
 //Utilities ----------------------------------------------------------------------------------------------------------------------------------
 
-    public static String facingToAddedInt(BlockFace face) {
-        String addedInt = "";
+    public static int facingToAddedInt(BlockFace face) {
         if (face.equals(BlockFace.NORTH))
-            addedInt = "1";
+            return 1;
         else if (face.equals(BlockFace.EAST))
-            addedInt = "2";
+            return 2;
         else if (face.equals(BlockFace.SOUTH))
-            addedInt = "3";
+            return 3;
         else if (face.equals(BlockFace.WEST))
-            addedInt = "4";
-        return addedInt;
+            return 4;
+        return 0;
     }
 
     public static Location[] getMinMax(Location l1, Location l2) {

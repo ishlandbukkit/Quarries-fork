@@ -12,51 +12,75 @@
     },
     {
       "predicate": {
-        "custom_model_data": 296370
+        "custom_model_data": 600010
       },
       "model": "item/construction"
     },
     {
       "predicate": {
-        "custom_model_data": 332447
+        "custom_model_data": 600020
       },
       "model": "item/marker"
     },
     {
       "predicate": {
-        "custom_model_data": 576161
+        "custom_model_data": 600030
       },
       "model": "item/quarry"
     },
     {
       "predicate": {
-        "custom_model_data": 750566
+        "custom_model_data": 600040
       },
       "model": "item/quarryarm"
     },
     {
       "predicate": {
-        "custom_model_data": 5761611
+        "custom_model_data": 600031
       },
-      "model": "item/quarry_1"
+      "model": "item/quarry_north"
     },
     {
       "predicate": {
-        "custom_model_data": 5761612
+        "custom_model_data": 600032
       },
-      "model": "item/quarry_2"
+      "model": "item/quarry_south"
     },
     {
       "predicate": {
-        "custom_model_data": 5761613
+        "custom_model_data": 600033
       },
-      "model": "item/quarry_3"
+      "model": "item/quarry_east"
     },
     {
       "predicate": {
-        "custom_model_data": 5761614
+        "custom_model_data": 600034
       },
-      "model": "item/quarry_4"
+      "model": "item/quarry_west"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 600131
+      },
+      "model": "item/quarry_powered_north"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 600132
+      },
+      "model": "item/quarry_powered_south"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 600133
+      },
+      "model": "item/quarry_powered_east"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 600134
+      },
+      "model": "item/quarry_powered_west"
     }
   ]
 }
