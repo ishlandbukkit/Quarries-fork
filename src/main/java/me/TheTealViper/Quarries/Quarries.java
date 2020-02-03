@@ -6,6 +6,7 @@ import me.TheTealViper.Quarries.blocks.Quarry;
 import me.TheTealViper.Quarries.entities.QuarryArm;
 import me.TheTealViper.Quarries.nms.ServerVersions;
 import me.TheTealViper.Quarries.nms.v1_15_R1.CustomSpawner1_15;
+import me.TheTealViper.Quarries.protection.Protections;
 import me.TheTealViper.Quarries.recipes.MarkerRecipe;
 import me.TheTealViper.Quarries.recipes.QuarryRecipe;
 import me.TheTealViper.Quarries.systems.QuarrySystem;
@@ -137,6 +138,7 @@ public class Quarries extends JavaPlugin implements Listener {
         Construction.onEnable();
         QuarrySystem.onEnable();
         QuarryArm.onEnable();
+        Protections.reload();
 
         getLogger().info("Registering recipe...");
         //Register Recipes

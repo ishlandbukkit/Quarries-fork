@@ -3,7 +3,7 @@
 ##########################################################
 
 # This is the maximum range which upon placing a quarry,
-# for example, will check for markers from an initial marker.
+# for example, will canBreak for markers from an initial marker.
 Marker_Check_Range: 500
 
 # This is the fixed size of threads to do async operations.

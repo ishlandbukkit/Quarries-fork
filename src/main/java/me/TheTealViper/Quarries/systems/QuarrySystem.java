@@ -5,6 +5,7 @@ import me.TheTealViper.Quarries.blocks.Construction;
 import me.TheTealViper.Quarries.blocks.Marker;
 import me.TheTealViper.Quarries.entities.QuarryArm;
 import me.TheTealViper.Quarries.nms.v1_15_R1.CustomItems1_15;
+import me.TheTealViper.Quarries.protection.Protections;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
 import me.TheTealViper.Quarries.serializables.VectorSerializable;
 import me.TheTealViper.Quarries.systems.enums.QuarrySystemTypes;
@@ -231,6 +232,7 @@ public class QuarrySystem implements Serializable {
 
     public void destroy() {
         Quarries.plugin.getServer().createWorld(new WorldCreator(world));
+        if (!isAlive || !checkAlive()) return;
         //Break construction blocks
         Vector delta = max.clone().subtract(min.clone()).toVector();
         Block constructionBlock;
@@ -306,7 +308,7 @@ public class QuarrySystem implements Serializable {
 //			Bukkit.broadcastMessage("hit bedrock");
                 hitBedrock = true;
                 break;
-            } else if (minedBlock.getType().equals(Material.AIR)) {
+            } else if (minedBlock.getType().equals(Material.AIR) || !Protections.canBreak(minedBlock.getLocation(), null)) {
                 hitAir = true;
                 constructionBlock = updateArm(delta);
             } else {
@@ -342,7 +344,7 @@ public class QuarrySystem implements Serializable {
                     continue;
                 }
                 Entity blockEntity = Bukkit.getEntity(arm.uuid);
-                assert blockEntity != null;
+                if (blockEntity == null) continue;
                 blockEntity.teleport(newPos);
                 QuarryArm.DATABASE.put(newPos, QuarryArm.DATABASE.get(oldPos));
                 QuarryArm.DATABASE.remove(oldPos);

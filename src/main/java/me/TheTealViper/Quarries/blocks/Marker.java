@@ -2,12 +2,14 @@ package me.TheTealViper.Quarries.blocks;
 
 import me.TheTealViper.Quarries.Quarries;
 import me.TheTealViper.Quarries.blocks.listeners.MarkerListeners;
+import me.TheTealViper.Quarries.protection.Protections;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
 import org.bukkit.*;
 import org.bukkit.Particle.DustOptions;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.Listener;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -28,10 +30,14 @@ public class Marker implements Listener, Serializable {
     public transient boolean isAlive = true;
     private LocationSerializable ls;
 
-    public Marker(Location loc, UUID uuid, boolean generateNew) {
+    public Marker(@NotNull Location loc, UUID uuid, boolean generateNew) {
         this.loc = loc;
         this.uuid = uuid;
         this.world = loc.getWorld().getName();
+        if (!Protections.canPlace(loc, null)) {
+            this.isAlive = false;
+            return;
+        }
         DATABASE.put(loc, this);
 
         if (generateNew) {
@@ -78,9 +84,8 @@ public class Marker implements Listener, Serializable {
     public void breakMarker() {
         if (loc != null) {
             DATABASE.remove(loc);
-            loc = null;
         }
-        if (!isAlive) return;
+        if (!isAlive || !checkAlive()) return;
         try {
             Quarries.plugin.getServer().createWorld(new WorldCreator(world));
             Entity e = Bukkit.getEntity(uuid);

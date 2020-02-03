@@ -7,3 +7,4 @@ api-version: "1.15"
 main: me.TheTealViper.Quarries.Quarries
 softdepend:
   - Multiverse-Core
+  - Towny

@@ -2,6 +2,7 @@ package me.TheTealViper.Quarries.entities;
 
 import me.TheTealViper.Quarries.Quarries;
 import me.TheTealViper.Quarries.entities.listeners.QuarryArm_Listeners;
+import me.TheTealViper.Quarries.protection.Protections;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -33,6 +34,10 @@ public class QuarryArm implements Serializable {
         this.loc = loc;
         this.uuid = uuid;
         this.world = loc.getWorld().getName();
+        if (!Protections.canPlace(loc, null)) {
+            this.isAlive = false;
+            return;
+        }
         DATABASE.put(loc, this);
 
         if (generateNew)
@@ -66,6 +71,7 @@ public class QuarryArm implements Serializable {
 
     public void breakQuarryArm() {
         Quarries.plugin.getServer().createWorld(new WorldCreator(world));
+        if (!isAlive || !checkAlive()) return;
         if (uuid != null) {
             Entity e = Bukkit.getEntity(uuid);
             if (e != null) e.remove();
@@ -82,6 +88,7 @@ public class QuarryArm implements Serializable {
         Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakQuarryArm, 1);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean checkAlive() {
         try {
             ArmorStand armorStand = (ArmorStand) loc.getWorld().getEntity(uuid);

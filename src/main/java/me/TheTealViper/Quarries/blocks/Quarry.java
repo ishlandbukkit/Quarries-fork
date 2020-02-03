@@ -2,6 +2,7 @@ package me.TheTealViper.Quarries.blocks;
 
 import me.TheTealViper.Quarries.Quarries;
 import me.TheTealViper.Quarries.blocks.listeners.QuarryListeners;
+import me.TheTealViper.Quarries.protection.Protections;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
 import me.TheTealViper.Quarries.systems.QuarrySystem;
 import org.bukkit.Location;
@@ -30,6 +31,10 @@ public class Quarry implements Serializable {
     public Quarry(Location loc, BlockFace face, boolean generateNew) {
         this.loc = loc;
         this.world = loc.getWorld().getName();
+        if (!Protections.canPlace(loc, null)) {
+            this.isAlive = false;
+            return;
+        }
         DATABASE.put(loc, this);
 
         if (generateNew) {
@@ -74,9 +79,8 @@ public class Quarry implements Serializable {
     public void breakQuarry() {
         if (loc != null) {
             DATABASE.remove(loc);
-            loc = null;
         }
-        if (!isAlive) return;
+        if (!isAlive || !checkAlive()) return;
         try {
             Quarries.plugin.getServer().createWorld(new WorldCreator(world));
             loc.getBlock().setType(Material.AIR);
