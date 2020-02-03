@@ -81,6 +81,30 @@
         "custom_model_data": 600134
       },
       "model": "item/quarry_powered_west"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 600231
+      },
+      "model": "item/quarry_active_north"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 600232
+      },
+      "model": "item/quarry_active_south"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 600233
+      },
+      "model": "item/quarry_active_east"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 600234
+      },
+      "model": "item/quarry_active_west"
     }
   ]
 }
