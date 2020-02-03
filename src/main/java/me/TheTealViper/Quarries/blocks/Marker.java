@@ -1,6 +1,7 @@
 package me.TheTealViper.Quarries.blocks;
 
 import me.TheTealViper.Quarries.Quarries;
+import me.TheTealViper.Quarries.annotations.Synchronized;
 import me.TheTealViper.Quarries.blocks.listeners.MarkerListeners;
 import me.TheTealViper.Quarries.protection.Protections;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
@@ -15,6 +16,7 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -30,6 +32,7 @@ public class Marker implements Listener, Serializable {
     public transient boolean isAlive = true;
     private LocationSerializable ls;
 
+    @Synchronized
     public Marker(@NotNull Location loc, UUID uuid, boolean generateNew) {
         this.loc = loc;
         this.uuid = uuid;
@@ -40,12 +43,11 @@ public class Marker implements Listener, Serializable {
         }
         DATABASE.put(loc, this);
 
-        if (generateNew) {
-            this.uuid = Quarries.createOutsideSpawner(loc.getBlock(), Quarries.TEXID_MARKER);
-            loc.getBlock().setType(Material.REDSTONE_TORCH);
-        }
+        if (generateNew)
+            regen();
     }
 
+    @Synchronized
     public static void onEnable() {
         Bukkit.getScheduler().scheduleSyncRepeatingTask(Quarries.plugin, () -> {
             for (Marker marker : DATABASE.values()) {
@@ -56,8 +58,18 @@ public class Marker implements Listener, Serializable {
         Quarries.plugin.getServer().getPluginManager().registerEvents(new MarkerListeners(), Quarries.plugin);
     }
 
+    @Synchronized
     @SuppressWarnings("EmptyMethod")
     public static void onDisable() {
+    }
+
+    @Synchronized
+    public void regen() {
+        if (this.uuid != null && loc != null && loc.getWorld() != null && loc.getWorld().getEntity(this.uuid) != null)
+            Objects.requireNonNull(loc.getWorld().getEntity(this.uuid)).remove();
+        assert loc != null;
+        this.uuid = Quarries.createOutsideSpawner(loc.getBlock(), Quarries.TEXID_MARKER);
+        loc.getBlock().setType(Material.REDSTONE_TORCH);
     }
 
     public static Marker getMarker(Location loc) {
@@ -70,17 +82,19 @@ public class Marker implements Listener, Serializable {
         Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakMarker, 0);
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
+    private void writeObject(@NotNull ObjectOutputStream out) throws IOException {
         ls = LocationSerializable.parseLocation(loc);
         out.defaultWriteObject();
     }
 
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    private void readObject(@NotNull ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         loc = ls.toLocation();
+        Bukkit.getScheduler().runTaskLater(Quarries.plugin, this::regen, 1);
         isAlive = true;
     }
 
+    @Synchronized
     public void breakMarker() {
         if (loc != null) {
             DATABASE.remove(loc);
@@ -104,6 +118,7 @@ public class Marker implements Listener, Serializable {
         Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakMarker, 1);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean checkAlive() {
         try {
             Quarries.plugin.getServer().createWorld(new WorldCreator(world));

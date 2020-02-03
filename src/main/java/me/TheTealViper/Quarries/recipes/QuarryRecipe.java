@@ -1,5 +1,6 @@
 package me.TheTealViper.Quarries.recipes;
 
+import me.TheTealViper.Quarries.annotations.Synchronized;
 import me.TheTealViper.Quarries.nms.v1_15_R1.CustomItems1_15;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -8,6 +9,7 @@ import org.bukkit.inventory.ShapedRecipe;
 
 public class QuarryRecipe {
 
+    @Synchronized
     public static void register() {
         ShapedRecipe recipe = new ShapedRecipe(NamespacedKey.minecraft("quarry"), CustomItems1_15.getItem(576161));
         recipe.shape(

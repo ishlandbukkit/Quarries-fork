@@ -1,13 +1,16 @@
 package me.TheTealViper.Quarries.blocks;
 
 import me.TheTealViper.Quarries.Quarries;
+import me.TheTealViper.Quarries.annotations.Synchronized;
 import me.TheTealViper.Quarries.blocks.listeners.ConstructionListeners;
 import me.TheTealViper.Quarries.protection.Protections;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldCreator;
 import org.bukkit.block.Block;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -27,7 +30,8 @@ public class Construction implements Serializable {
     public transient boolean isAlive = true;
     private LocationSerializable ls;
 
-    public Construction(Location loc, boolean generateNew) {
+    @Synchronized
+    public Construction(@NotNull Location loc, boolean generateNew) {
         this.loc = loc;
         this.world = loc.getWorld().getName();
         if (!Protections.canPlace(loc, null)) {
@@ -37,13 +41,15 @@ public class Construction implements Serializable {
         DATABASE.put(loc, this);
 
         if (generateNew)
-            Quarries.createInsideSpawner(loc.getBlock(), Quarries.TEXID_CONSTRUCTION);
+            regen();
     }
 
+    @Synchronized
     public static void onEnable() {
         Quarries.plugin.getServer().getPluginManager().registerEvents(new ConstructionListeners(), Quarries.plugin);
     }
 
+    @Synchronized
     @SuppressWarnings("EmptyMethod")
     public static void onDisable() {
 
@@ -51,6 +57,11 @@ public class Construction implements Serializable {
 
     public static Construction getConstruction(Location loc) {
         return DATABASE.get(loc);
+    }
+
+    @Synchronized
+    public void regen() {
+        Quarries.createInsideSpawner(loc.getBlock(), Quarries.TEXID_CONSTRUCTION);
     }
 
     @Override
@@ -63,17 +74,19 @@ public class Construction implements Serializable {
         Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakConstruction, 1);
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
+    private void writeObject(@NotNull ObjectOutputStream out) throws IOException {
         ls = LocationSerializable.parseLocation(loc);
         out.defaultWriteObject();
     }
 
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    private void readObject(@NotNull ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         loc = ls.toLocation();
+        Bukkit.getScheduler().runTaskLater(Quarries.plugin, this::regen, 1);
         isAlive = true;
     }
 
+    @Synchronized
     public void breakConstruction() {
         if (loc != null) {
             DATABASE.remove(loc);
@@ -89,6 +102,7 @@ public class Construction implements Serializable {
         loc = null;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean checkAlive() {
         try {
             Quarries.plugin.getServer().createWorld(new WorldCreator(world));

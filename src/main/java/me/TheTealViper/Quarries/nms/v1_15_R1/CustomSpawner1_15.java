@@ -1,6 +1,7 @@
 package me.TheTealViper.Quarries.nms.v1_15_R1;
 
 import me.TheTealViper.Quarries.Quarries;
+import me.TheTealViper.Quarries.annotations.Synchronized;
 import net.minecraft.server.v1_15_R1.BlockPosition;
 import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import net.minecraft.server.v1_15_R1.NBTTagList;
@@ -13,13 +14,15 @@ import org.bukkit.craftbukkit.v1_15_R1.CraftWorld;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
 @SuppressWarnings("unused")
 public class CustomSpawner1_15 {
 
-    public static void createBlock(Block b, int textureId) {
+    @Synchronized
+    public static void createBlock(@NotNull Block b, int textureId) {
         b.getWorld().playSound(b.getLocation(), Sound.BLOCK_WOOD_PLACE, 1, 1);
         b.setType(Material.SPAWNER);
         CreatureSpawner cs = (CreatureSpawner) b.getState();
@@ -57,7 +60,9 @@ public class CustomSpawner1_15 {
         b.getState().update();
     }
 
-    public static UUID createEntity(Block b, int textureId) {
+    @Synchronized
+    @NotNull
+    public static UUID createEntity(@NotNull Block b, int textureId) {
         // b.getWorld().playSound(b.getLocation(), Sound.BLOCK_STONE_BREAK, 1, 1);
         // b.setType(replacementBlock);
         ArmorStand e = (ArmorStand) b.getWorld().spawnEntity(b.getLocation().clone().add(.5, 0, .5), EntityType.ARMOR_STAND);
@@ -73,8 +78,9 @@ public class CustomSpawner1_15 {
         return e.getUniqueId();
     }
 
+    @Synchronized
     @SuppressWarnings("unused")
-    public static void big(Player p) {
+    public static void big(@NotNull Player p) {
         Block b = p.getTargetBlock(null, 100);
         b.setType(Material.SPAWNER);
         CreatureSpawner cs = (CreatureSpawner) b.getState();
@@ -112,7 +118,8 @@ public class CustomSpawner1_15 {
         b.getState().update();
     }
 
-    public static void small(Player p) {
+    @Synchronized
+    public static void small(@NotNull Player p) {
         Block b = p.getTargetBlock(null, 100);
         b.setType(Material.SPAWNER);
         CreatureSpawner cs = (CreatureSpawner) b.getState();

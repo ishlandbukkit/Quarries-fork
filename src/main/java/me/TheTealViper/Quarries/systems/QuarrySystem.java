@@ -1,6 +1,7 @@
 package me.TheTealViper.Quarries.systems;
 
 import me.TheTealViper.Quarries.Quarries;
+import me.TheTealViper.Quarries.annotations.Synchronized;
 import me.TheTealViper.Quarries.blocks.Construction;
 import me.TheTealViper.Quarries.blocks.Marker;
 import me.TheTealViper.Quarries.entities.QuarryArm;
@@ -21,6 +22,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -57,7 +61,8 @@ public class QuarrySystem implements Serializable {
     private transient List<SoftReference<QuarryArm>> arms = new ArrayList<>();
     private String world;
 
-    public QuarrySystem(Block quarryBlock, Location max, Location min, boolean powered, QuarrySystemTypes type, Vector miningArmShift, boolean hitBedrock, int mineDelay) {
+    @Synchronized
+    public QuarrySystem(@NotNull Block quarryBlock, Location max, Location min, boolean powered, QuarrySystemTypes type, Vector miningArmShift, boolean hitBedrock, int mineDelay) {
         DATABASE.put(quarryBlock.getLocation(), this);
         this.quarryBlock = quarryBlock;
         this.max = max;
@@ -71,19 +76,25 @@ public class QuarrySystem implements Serializable {
         init();
     }
 
+    @Synchronized
     public static void onEnable() {
         Quarries.plugin.getServer().getPluginManager().registerEvents(new QuarrySystemListeners(), Quarries.plugin);
     }
 
+    @Synchronized
     @SuppressWarnings("EmptyMethod")
     public static void onDisable() {
     }
 
+    @NotNull
+    @Contract("_, _, _, _ -> new")
+    @Synchronized
     public static QuarrySystem createQuarrySystem(Block quarryBlock, Location max, Location min, QuarrySystemTypes type) {
         return new QuarrySystem(quarryBlock, max, min, true, type, new Vector(0, 1, 0), false, 4);
     }
 
-    public static void initCreateQuarrySystem(Block quarryBlock, Block startingMarker, BlockFace face) {
+    @Synchronized
+    public static void initCreateQuarrySystem(@NotNull Block quarryBlock, Block startingMarker, @NotNull BlockFace face) {
 //		Bukkit.broadcastMessage("checkRange:" + ViperFusion.Marker_Check_Range);
         Quarries.plugin.getServer().createWorld(new WorldCreator(quarryBlock.getWorld().getName()));
         List<Location> foundMarkers = new ArrayList<>();
@@ -181,7 +192,7 @@ public class QuarrySystem implements Serializable {
         }
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
+    private void writeObject(@NotNull ObjectOutputStream out) throws IOException {
         maxS = LocationSerializable.parseLocation(max);
         minS = LocationSerializable.parseLocation(min);
         masS = VectorSerializable.parseVector(miningArmShift);
@@ -195,7 +206,7 @@ public class QuarrySystem implements Serializable {
     }
 
     @SuppressWarnings("unchecked")
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    private void readObject(@NotNull ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         List<QuarryArm> list = (List<QuarryArm>) in.readObject();
         arms = new ArrayList<>();
@@ -230,6 +241,7 @@ public class QuarrySystem implements Serializable {
         isActive = true;
     }
 
+    @Synchronized
     public void destroy() {
         Quarries.plugin.getServer().createWorld(new WorldCreator(world));
         if (!isAlive || !checkAlive()) return;
@@ -286,6 +298,7 @@ public class QuarrySystem implements Serializable {
         quarryBlock.getLocation().getWorld().dropItem(quarryBlock.getLocation(), CustomItems1_15.getItem(Quarries.TEXID_QUARRY));
     }
 
+    @Synchronized
     public void mine() {
 //		Bukkit.broadcastMessage("mining");
         Quarries.plugin.getServer().createWorld(new WorldCreator(world));
@@ -327,7 +340,8 @@ public class QuarrySystem implements Serializable {
         Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::destroy, 1);
     }
 
-    private void updateVisual(Block constructionBlock, Block oldCB) {
+    @Synchronized
+    private void updateVisual(@NotNull Block constructionBlock, Block oldCB) {
         for (int y = max.getBlockY() - 1; y >= constructionBlock.getLocation().getBlockY(); y--) {
             Location newPos = constructionBlock.getLocation().clone();
             Location oldPos = oldCB.getLocation().clone();
@@ -352,7 +366,9 @@ public class QuarrySystem implements Serializable {
         }
     }
 
-    private Block updateArm(Vector delta) {
+    @Synchronized
+    @NotNull
+    private Block updateArm(@NotNull Vector delta) {
         //Handle updating mining arm
         miningArmShift.add(new Vector(0, 0, 1));
         if (miningArmShift.getBlockZ() > delta.getBlockZ() - 2) {
@@ -366,6 +382,8 @@ public class QuarrySystem implements Serializable {
         return min.clone().add(1 + miningArmShift.getBlockX(), delta.getBlockY() - miningArmShift.getBlockY(), 1 + miningArmShift.getBlockZ()).getBlock();
     }
 
+    @Synchronized
+    @Nullable
     private ItemStack getTool() {
         Block toolContainer = quarryBlock.getRelative(BlockFace.UP);
         if (toolContainer.getState() instanceof Container) {
@@ -375,6 +393,7 @@ public class QuarrySystem implements Serializable {
         return null;
     }
 
+    @Synchronized
     public void handleMinedItem(ItemStack item) {
         Quarries.plugin.getServer().createWorld(new WorldCreator(world));
         boolean handledAlready = false;
@@ -418,12 +437,14 @@ public class QuarrySystem implements Serializable {
         }
     }
 
+    @Synchronized
     public void breakQuarryArms() {
         for (SoftReference<QuarryArm> arm : arms)
             Objects.requireNonNull(arm.get()).breakQuarryArm();
         isAlive = false;
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean checkAlive() {
         return isAlive;
     }

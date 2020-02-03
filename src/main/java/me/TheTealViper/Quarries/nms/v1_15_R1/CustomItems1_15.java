@@ -4,9 +4,11 @@ import net.minecraft.server.v1_15_R1.NBTTagCompound;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.jetbrains.annotations.NotNull;
 
 public class CustomItems1_15 {
 
+    @NotNull
     public static ItemStack getItem(int textureId) {
         ItemStack item = new ItemStack(Material.STONE);
         ItemMeta meta = item.getItemMeta();
@@ -16,6 +18,7 @@ public class CustomItems1_15 {
         return item;
     }
 
+    @NotNull
     public static NBTTagCompound getItemNBT(int textureId) {
         NBTTagCompound compound = new NBTTagCompound();
         compound.setString("id", "minecraft:stone");

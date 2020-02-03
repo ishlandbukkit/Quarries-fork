@@ -1,15 +1,18 @@
 package me.TheTealViper.Quarries.blocks;
 
 import me.TheTealViper.Quarries.Quarries;
+import me.TheTealViper.Quarries.annotations.Synchronized;
 import me.TheTealViper.Quarries.blocks.listeners.QuarryListeners;
 import me.TheTealViper.Quarries.protection.Protections;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
 import me.TheTealViper.Quarries.systems.QuarrySystem;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldCreator;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -26,11 +29,14 @@ public class Quarry implements Serializable {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public transient Location loc;
     public transient boolean isAlive = true;
+    public BlockFace facing;
     private LocationSerializable ls;
 
-    public Quarry(Location loc, BlockFace face, boolean generateNew) {
+    @Synchronized
+    public Quarry(@NotNull Location loc, BlockFace face, boolean generateNew) {
         this.loc = loc;
         this.world = loc.getWorld().getName();
+        this.facing = face;
         if (!Protections.canPlace(loc, null)) {
             this.isAlive = false;
             return;
@@ -38,7 +44,7 @@ public class Quarry implements Serializable {
         DATABASE.put(loc, this);
 
         if (generateNew) {
-            Quarries.createInsideSpawner(loc.getBlock(), Integer.parseInt(Quarries.TEXID_QUARRY + Quarries.facingToAddedInt(face)));
+            regen();
 
             if (Marker.DATABASE.containsKey(loc.getBlock().getRelative(BlockFace.NORTH).getLocation()))
                 QuarrySystem.initCreateQuarrySystem(loc.getBlock(), loc.getBlock().getRelative(BlockFace.NORTH), BlockFace.NORTH);
@@ -51,12 +57,21 @@ public class Quarry implements Serializable {
         }
     }
 
+    @Synchronized
     public static void onEnable() {
         Quarries.plugin.getServer().getPluginManager().registerEvents(new QuarryListeners(), Quarries.plugin);
     }
 
+    @Synchronized
     @SuppressWarnings("EmptyMethod")
     public static void onDisable() {
+    }
+
+    public void regen() {
+        Quarries.createInsideSpawner(loc.getBlock(),
+                Quarries.TEXID_QUARRY + // base id
+                        Quarries.facingToAddedInt(facing) // facing
+        );
     }
 
     @Override
@@ -65,17 +80,19 @@ public class Quarry implements Serializable {
         Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakQuarry, 0);
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
+    private void writeObject(@NotNull ObjectOutputStream out) throws IOException {
         ls = LocationSerializable.parseLocation(loc);
         out.defaultWriteObject();
     }
 
-    private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
+    private void readObject(@NotNull ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         loc = ls.toLocation();
+        Bukkit.getScheduler().runTaskLater(Quarries.plugin, this::regen, 1);
         isAlive = true;
     }
 
+    @Synchronized
     public void breakQuarry() {
         if (loc != null) {
             DATABASE.remove(loc);
@@ -96,6 +113,7 @@ public class Quarry implements Serializable {
         Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakQuarry, 1);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean checkAlive() {
         try {
             Quarries.plugin.getServer().createWorld(new WorldCreator(world));

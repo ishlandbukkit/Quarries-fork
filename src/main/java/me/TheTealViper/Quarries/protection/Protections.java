@@ -62,7 +62,7 @@ public class Protections {
         boolean res = true;
         for (Protection protection : DATABASE)
             try {
-                boolean result = protection.canPlace(loc, playerName);
+                boolean result = protection.canBreak(loc, playerName);
                 if (!result) {
                     if (Quarries.plugin.getLogger().isLoggable(Level.FINE))
                         Quarries.plugin.getLogger().log(Level.FINE,

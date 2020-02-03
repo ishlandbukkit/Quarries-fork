@@ -17,6 +17,8 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -38,7 +40,8 @@ public class Quarries extends JavaPlugin implements Listener {
     //thread pool
     public static ExecutorService pool = null;
 
-    public static BlockFace getFacing(Player p) {
+    @Nullable
+    public static BlockFace getFacing(@NotNull Player p) {
         float yaw = p.getLocation().getYaw();
         if (yaw >= -360 && yaw < -315) {
             return BlockFace.SOUTH;
@@ -65,7 +68,7 @@ public class Quarries extends JavaPlugin implements Listener {
 
 //Utilities ----------------------------------------------------------------------------------------------------------------------------------
 
-    public static int facingToAddedInt(BlockFace face) {
+    public static int facingToAddedInt(@NotNull BlockFace face) {
         if (face.equals(BlockFace.NORTH))
             return 1;
         else if (face.equals(BlockFace.EAST))
@@ -77,7 +80,8 @@ public class Quarries extends JavaPlugin implements Listener {
         return 0;
     }
 
-    public static Location[] getMinMax(Location l1, Location l2) {
+    @NotNull
+    public static Location[] getMinMax(@NotNull Location l1, @NotNull Location l2) {
         int minX = (int) (Math.min(l1.getX(), l2.getX()));
         int maxX = (int) (Math.max(l1.getX(), l2.getX()));
         int minY = (int) (Math.min(l1.getY(), l2.getY()));
@@ -92,6 +96,7 @@ public class Quarries extends JavaPlugin implements Listener {
             CustomSpawner1_15.createBlock(b, textureId);
     }
 
+    @Nullable
     public static UUID createOutsideSpawner(Block b, int textureId) {
         if (version == ServerVersions.v1_15_R1)
             return CustomSpawner1_15.createEntity(b, textureId);

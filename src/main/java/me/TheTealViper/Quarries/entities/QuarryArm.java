@@ -1,6 +1,7 @@
 package me.TheTealViper.Quarries.entities;
 
 import me.TheTealViper.Quarries.Quarries;
+import me.TheTealViper.Quarries.annotations.Synchronized;
 import me.TheTealViper.Quarries.entities.listeners.QuarryArm_Listeners;
 import me.TheTealViper.Quarries.protection.Protections;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
@@ -9,11 +10,13 @@ import org.bukkit.Location;
 import org.bukkit.WorldCreator;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -30,7 +33,8 @@ public class QuarryArm implements Serializable {
     public transient boolean isAlive = true;
     private LocationSerializable ls;
 
-    public QuarryArm(Location loc, UUID uuid, boolean generateNew) {
+    @Synchronized
+    public QuarryArm(@NotNull Location loc, UUID uuid, boolean generateNew) {
         this.loc = loc;
         this.uuid = uuid;
         this.world = loc.getWorld().getName();
@@ -41,15 +45,25 @@ public class QuarryArm implements Serializable {
         DATABASE.put(loc, this);
 
         if (generateNew)
-            this.uuid = Quarries.createOutsideSpawner(loc.getBlock(), Quarries.TEXID_QUARRYARM);
+            regen();
     }
 
+    @Synchronized
     public static void onEnable() {
         Quarries.plugin.getServer().getPluginManager().registerEvents(new QuarryArm_Listeners(), Quarries.plugin);
     }
 
+    @Synchronized
     @SuppressWarnings("EmptyMethod")
     public static void onDisable() {
+    }
+
+    @Synchronized
+    public void regen() {
+        if (this.uuid != null && loc != null && loc.getWorld() != null && loc.getWorld().getEntity(this.uuid) != null)
+            Objects.requireNonNull(loc.getWorld().getEntity(this.uuid)).remove();
+        assert loc != null;
+        this.uuid = Quarries.createOutsideSpawner(loc.getBlock(), Quarries.TEXID_QUARRYARM);
     }
 
     @Override
@@ -66,9 +80,11 @@ public class QuarryArm implements Serializable {
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         loc = ls.toLocation();
+        Bukkit.getScheduler().runTaskLater(Quarries.plugin, this::regen, 1);
         isAlive = true;
     }
 
+    @Synchronized
     public void breakQuarryArm() {
         Quarries.plugin.getServer().createWorld(new WorldCreator(world));
         if (!isAlive || !checkAlive()) return;
