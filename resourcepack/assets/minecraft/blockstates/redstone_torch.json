@@ -1,0 +1,10 @@
+{
+  "variants": {
+    "lit=true": {
+      "model": "block/redstone_torch"
+    },
+    "lit=false": {
+      "model": "block/marker"
+    }
+  }
+}

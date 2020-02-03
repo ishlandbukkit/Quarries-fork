@@ -1,0 +1,62 @@
+{
+  "parent": "item/handheld",
+  "textures": {
+    "layer0": "block/stone"
+  },
+  "overrides": [
+    {
+      "predicate": {
+        "custom_model_data": 0
+      },
+      "model": "block/stone"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 296370
+      },
+      "model": "item/construction"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 332447
+      },
+      "model": "item/marker"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 576161
+      },
+      "model": "item/quarry"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 750566
+      },
+      "model": "item/quarryarm"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5761611
+      },
+      "model": "item/quarry_1"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5761612
+      },
+      "model": "item/quarry_2"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5761613
+      },
+      "model": "item/quarry_3"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 5761614
+      },
+      "model": "item/quarry_4"
+    }
+  ]
+}
