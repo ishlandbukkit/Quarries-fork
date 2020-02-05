@@ -1,8 +1,8 @@
-package me.TheTealViper.Quarries.protection.types;
+package me.TheTealViper.Quarries.integration.protection.types;
 
 import com.palmergames.bukkit.towny.TownyAPI;
 import me.TheTealViper.Quarries.Quarries;
-import me.TheTealViper.Quarries.protection.Protection;
+import me.TheTealViper.Quarries.integration.protection.Protection;
 import org.bukkit.Location;
 
 public class TownyProtection implements Protection {

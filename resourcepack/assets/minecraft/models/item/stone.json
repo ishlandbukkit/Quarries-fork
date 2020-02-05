@@ -30,12 +30,6 @@
     },
     {
       "predicate": {
-        "custom_model_data": 600040
-      },
-      "model": "item/quarryarm"
-    },
-    {
-      "predicate": {
         "custom_model_data": 600031
       },
       "model": "item/quarry_north"
@@ -57,6 +51,12 @@
         "custom_model_data": 600034
       },
       "model": "item/quarry_west"
+    },
+    {
+      "predicate": {
+        "custom_model_data": 600040
+      },
+      "model": "item/quarryarm"
     },
     {
       "predicate": {

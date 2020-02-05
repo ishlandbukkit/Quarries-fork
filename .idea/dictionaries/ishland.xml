@@ -4,13 +4,20 @@
       <w>blockbench</w>
       <w>bukkit</w>
       <w>chestplate</w>
+      <w>cullface</w>
+      <w>firstperson</w>
       <w>ishlandbukkit</w>
+      <w>jitpack</w>
+      <w>lefthand</w>
       <w>minecraft</w>
       <w>noninfringement</w>
       <w>quarryarm</w>
+      <w>righthand</w>
+      <w>slimefun</w>
       <w>spawner</w>
       <w>teleport</w>
       <w>texid</w>
+      <w>thirdperson</w>
     </words>
   </dictionary>
 </component>

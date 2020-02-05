@@ -3,7 +3,7 @@ package me.TheTealViper.Quarries.blocks;
 import me.TheTealViper.Quarries.Quarries;
 import me.TheTealViper.Quarries.annotations.Synchronized;
 import me.TheTealViper.Quarries.blocks.listeners.QuarryListeners;
-import me.TheTealViper.Quarries.protection.Protections;
+import me.TheTealViper.Quarries.integration.protection.Protections;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
 import me.TheTealViper.Quarries.systems.QuarrySystem;
 import org.bukkit.Bukkit;
@@ -29,6 +29,7 @@ public class Quarry implements Serializable {
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     public transient Location loc;
     public transient boolean isAlive = true;
+    public LocationSerializable QSLoc;
     public BlockFace facing;
     private LocationSerializable ls;
 

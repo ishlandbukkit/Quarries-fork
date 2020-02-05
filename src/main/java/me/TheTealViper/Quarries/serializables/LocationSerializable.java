@@ -11,12 +11,12 @@ import java.io.Serializable;
 public class LocationSerializable implements Serializable {
     private static final long serialVersionUID = 9196768773185758132L;
 
-    String world;
-    double x;
-    double y;
-    double z;
-    float yaw;
-    float pitch;
+    final String world;
+    final double x;
+    final double y;
+    final double z;
+    final float yaw;
+    final float pitch;
 
     public LocationSerializable(String world, double x, double y, double z, float yaw, float pitch) {
         this.world = world;

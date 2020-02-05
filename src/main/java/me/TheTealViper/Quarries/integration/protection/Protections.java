@@ -1,4 +1,4 @@
-package me.TheTealViper.Quarries.protection;
+package me.TheTealViper.Quarries.integration.protection;
 
 import me.TheTealViper.Quarries.Quarries;
 import org.bukkit.Location;
@@ -11,7 +11,7 @@ import java.util.logging.Level;
 
 public class Protections {
     public static List<Protection> DATABASE = new ArrayList<>();
-    private static Reflections reflections = new Reflections("me.TheTealViper.Quarries.protection.types");
+    private static final Reflections reflections = new Reflections("me.TheTealViper.Quarries.integration.protection.types");
 
     public static synchronized void reload() {
         Quarries.plugin.getLogger().info("Reloading protection modules...");

@@ -8,7 +8,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 
 import java.util.ArrayList;
 import java.util.List;
-
+@SuppressWarnings({"DeprecatedIsStillUsed", "removal"})
+@Deprecated(forRemoval = true)
 public class QuarryArm_Listeners implements Listener {
 
     @EventHandler

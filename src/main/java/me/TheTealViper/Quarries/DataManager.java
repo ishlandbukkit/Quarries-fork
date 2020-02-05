@@ -3,7 +3,6 @@ package me.TheTealViper.Quarries;
 import me.TheTealViper.Quarries.blocks.Construction;
 import me.TheTealViper.Quarries.blocks.Marker;
 import me.TheTealViper.Quarries.blocks.Quarry;
-import me.TheTealViper.Quarries.entities.QuarryArm;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
 import me.TheTealViper.Quarries.systems.QuarrySystem;
 import org.bukkit.Location;
@@ -91,18 +90,6 @@ public class DataManager {
             }
         }));
         futures.add(Quarries.pool.submit(() -> {
-            Iterator<Map.Entry<Location, QuarryArm>> it = QuarryArm.DATABASE.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<Location, QuarryArm> entry = it.next();
-                if (entry.getKey() == null || entry.getValue() == null ||
-                        !entry.getValue().isAlive || !entry.getValue().checkAlive()) {
-                    if (entry.getValue() != null)
-                        entry.getValue().breakObj();
-                    it.remove();
-                }
-            }
-        }));
-        futures.add(Quarries.pool.submit(() -> {
             Iterator<Map.Entry<Location, QuarrySystem>> it = QuarrySystem.DATABASE.entrySet().iterator();
             while (it.hasNext()) {
                 Map.Entry<Location, QuarrySystem> entry = it.next();
@@ -153,18 +140,6 @@ public class DataManager {
                     ObjectInputStream in = new ObjectInputStream(new FileInputStream(markerData));
                     ((Map<LocationSerializable, Marker>) in.readObject())
                             .forEach((k, v) -> Marker.DATABASE.put(k.toLocation(), v));
-                    in.close();
-                } catch (Exception e) {
-                    Quarries.plugin.getLogger().log(Level.SEVERE, "Unable to load data", e);
-                    throw new RuntimeException("Unable to load data", e);
-                }
-            }));
-        if (quarryArmData.exists())
-            futures.add(Quarries.pool.submit(() -> {
-                try {
-                    ObjectInputStream in = new ObjectInputStream(new FileInputStream(quarryArmData));
-                    ((Map<LocationSerializable, QuarryArm>) in.readObject())
-                            .forEach((k, v) -> QuarryArm.DATABASE.put(k.toLocation(), v));
                     in.close();
                 } catch (Exception e) {
                     Quarries.plugin.getLogger().log(Level.SEVERE, "Unable to load data", e);
@@ -233,19 +208,6 @@ public class DataManager {
         }));
         futures.add(Quarries.pool.submit(() -> {
             try {
-                ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(quarryArmData));
-                Map<LocationSerializable, QuarryArm> data = new HashMap<>();
-                QuarryArm.DATABASE.forEach((k, v) -> data.put(LocationSerializable.parseLocation(k), v));
-                out.writeObject(data);
-                out.flush();
-                out.close();
-            } catch (Exception e) {
-                Quarries.plugin.getLogger().log(Level.SEVERE, "Unable to save data", e);
-                throw new RuntimeException("Unable to save data", e);
-            }
-        }));
-        futures.add(Quarries.pool.submit(() -> {
-            try {
                 ObjectOutputStream out = new ObjectOutputStream(new FileOutputStream(quarrySystemData));
                 Map<LocationSerializable, QuarrySystem> data = new HashMap<>();
                 QuarrySystem.DATABASE.forEach((k, v) -> data.put(LocationSerializable.parseLocation(k), v));
@@ -267,8 +229,7 @@ public class DataManager {
         Quarries.plugin.getLogger().info("Construction: " + Construction.DATABASE.size());
         Quarries.plugin.getLogger().info("Quarry: " + Quarry.DATABASE.size());
         Quarries.plugin.getLogger().info("Marker: " + Marker.DATABASE.size());
-        Quarries.plugin.getLogger().info("QuarryArm: " + QuarryArm.DATABASE.size());
-        Quarries.plugin.getLogger().info("QuarrySystem: " + QuarryArm.DATABASE.size());
+        Quarries.plugin.getLogger().info("QuarrySystem: " + QuarrySystem.DATABASE.size());
         Quarries.plugin.getLogger().info("End of statistics");
     }
 }

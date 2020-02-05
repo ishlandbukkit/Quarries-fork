@@ -3,7 +3,7 @@ package me.TheTealViper.Quarries.blocks;
 import me.TheTealViper.Quarries.Quarries;
 import me.TheTealViper.Quarries.annotations.Synchronized;
 import me.TheTealViper.Quarries.blocks.listeners.ConstructionListeners;
-import me.TheTealViper.Quarries.protection.Protections;
+import me.TheTealViper.Quarries.integration.protection.Protections;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;

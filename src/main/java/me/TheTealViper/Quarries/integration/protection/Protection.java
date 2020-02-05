@@ -1,4 +1,4 @@
-package me.TheTealViper.Quarries.protection;
+package me.TheTealViper.Quarries.integration.protection;
 
 import org.bukkit.Location;
 

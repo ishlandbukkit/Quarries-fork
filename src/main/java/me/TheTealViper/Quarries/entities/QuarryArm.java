@@ -3,7 +3,7 @@ package me.TheTealViper.Quarries.entities;
 import me.TheTealViper.Quarries.Quarries;
 import me.TheTealViper.Quarries.annotations.Synchronized;
 import me.TheTealViper.Quarries.entities.listeners.QuarryArm_Listeners;
-import me.TheTealViper.Quarries.protection.Protections;
+import me.TheTealViper.Quarries.integration.protection.Protections;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -21,7 +21,8 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-@SuppressWarnings("deprecation")
+@Deprecated(forRemoval = true)
+@SuppressWarnings({"deprecation", "DeprecatedIsStillUsed", "removal"})
 public class QuarryArm implements Serializable {
 
     public static final ConcurrentMap<Location, QuarryArm> DATABASE = new ConcurrentHashMap<>();

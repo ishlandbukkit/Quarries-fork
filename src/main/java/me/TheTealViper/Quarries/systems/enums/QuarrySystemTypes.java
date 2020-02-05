@@ -1,5 +1,7 @@
 package me.TheTealViper.Quarries.systems.enums;
 
-public enum QuarrySystemTypes {
+import java.io.Serializable;
+
+public enum QuarrySystemTypes implements Serializable {
     Default
 }
