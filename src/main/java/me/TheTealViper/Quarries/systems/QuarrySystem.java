@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Future;
 
 @SuppressWarnings({"CanBeFinal", "deprecation"})
 public class QuarrySystem implements Serializable {
@@ -55,6 +56,10 @@ public class QuarrySystem implements Serializable {
     private LocationSerializable maxS, minS;
     private VectorSerializable masS;
     private String world;
+    @SuppressWarnings("InstanceVariableMayNotBeInitializedByReadObject")
+    private transient ItemStack currentTool = null;
+    @SuppressWarnings("InstanceVariableMayNotBeInitializedByReadObject")
+    private transient Future<?> lastShift = null;
 
     @Synchronized
     public QuarrySystem(@NotNull Block quarryBlock, @NotNull Location max,
@@ -87,12 +92,11 @@ public class QuarrySystem implements Serializable {
     @Contract("_, _, _, _ -> new")
     @Synchronized
     public static QuarrySystem createQuarrySystem(Block quarryBlock, Location max, Location min, QuarrySystemTypes type) {
-        return new QuarrySystem(quarryBlock, max, min, true, type, new Vector(0, 1, 0), false, 4);
+        return new QuarrySystem(quarryBlock, max, min, true, type, new Vector(0, 1, 0), false, 1);
     }
 
-    @Nullable
     @Synchronized
-    public static QuarrySystem initCreateQuarrySystem(@NotNull Block quarryBlock, Block startingMarker, @NotNull BlockFace face) {
+    public static void initCreateQuarrySystem(@NotNull Block quarryBlock, Block startingMarker, @NotNull BlockFace face) {
 //		Bukkit.broadcastMessage("checkRange:" + ViperFusion.Marker_Check_Range);
         Quarries.plugin.getServer().createWorld(new WorldCreator(quarryBlock.getWorld().getName()));
         List<Location> foundMarkers = new ArrayList<>();
@@ -187,9 +191,7 @@ public class QuarrySystem implements Serializable {
             //Handle creating QuarrySystem
             QuarrySystem QS = QuarrySystem.createQuarrySystem(quarryBlock, max, min, QuarrySystemTypes.Default);
             QuarrySystem.DATABASE.put(QS.quarryBlock.getLocation(), QS);
-            return QS;
         }
-        return null;
     }
 
     private void writeObject(@NotNull ObjectOutputStream out) throws IOException {
@@ -213,20 +215,20 @@ public class QuarrySystem implements Serializable {
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::destroy, 0);
+        Quarries.scheduler.runSync(this::destroy);
     }
 
     public void init() {
         QuarrySystem QS = this;
         List<Integer> scheduleInt = new ArrayList<>();
-        scheduleInt.add(Bukkit.getScheduler().scheduleSyncRepeatingTask(Quarries.plugin, () -> {
+        scheduleInt.add(Bukkit.getScheduler().runTaskTimerAsynchronously(Quarries.plugin, () -> {
             if (QS.powered && !QS.hitBedrock && DATABASE.containsKey(quarryBlock.getLocation()))
                 mine();
             else {
                 Bukkit.getScheduler().cancelTask(scheduleInt.get(0));
                 isActive = false;
             }
-        }, 0, QS.mineDelay));
+        }, 0, QS.mineDelay).getTaskId());
         isActive = true;
     }
 
@@ -286,59 +288,77 @@ public class QuarrySystem implements Serializable {
         isAlive = false;
     }
 
-    @Synchronized
     public void mine() {
 //		Bukkit.broadcastMessage("mining");
-        Quarries.plugin.getServer().createWorld(new WorldCreator(world));
         //Check tool
         ItemStack tool = getTool();
         if (tool == null)
             return;
 
         //Handle mining arm placement
+        if (lastShift != null) {
+            try {
+                lastShift.get();
+            } catch (Exception ignored) {
+            }
+        }
         Vector delta = max.clone().subtract(min.clone()).toVector();
         Block constructionBlock = min.clone().add(1 + miningArmShift.getBlockX(), delta.getBlockY() - miningArmShift.getBlockY(), 1 + miningArmShift.getBlockZ()).getBlock();
         //		ViperFusion.createConstruction(constructionBlock);
-        Location oldCB = constructionBlock.getLocation();
 
         //Handle mining
-        while (true) {
-            Block minedBlock = constructionBlock.getRelative(BlockFace.DOWN);
-            if (minedBlock.getType().equals(Material.BEDROCK)) {
-                hitAir = false;
+        Block minedBlock = constructionBlock.getRelative(BlockFace.DOWN);
+        if (minedBlock.getType().equals(Material.BEDROCK)) {
+            hitAir = false;
 //			Bukkit.broadcastMessage("hit bedrock");
-                hitBedrock = true;
-                break;
-            } else if (minedBlock.getType().equals(Material.AIR) || !Protections.canBreak(minedBlock.getLocation(), null)) {
-                hitAir = true;
-                constructionBlock = updateArm(delta);
-            } else {
-                hitAir = false;
-                minedBlock.breakNaturally(tool, true);
-                constructionBlock = updateArm(delta);
-                break;
-            }
+            hitBedrock = true;
+        } else {
+            hitAir = false;
+            Quarries.scheduler.runSync(() -> minedBlock.breakNaturally(tool, true));
         }
+        updateArm(delta);
     }
 
     public void breakObj() {
-        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::destroy, 1);
+        Quarries.scheduler.runSync(this::destroy);
     }
 
-    @Synchronized
-    @NotNull
-    private Block updateArm(@NotNull Vector delta) {
+    private void updateArm(@NotNull Vector delta) {
         //Handle updating mining arm
-        miningArmShift.add(new Vector(0, 0, 1));
-        if (miningArmShift.getBlockZ() > delta.getBlockZ() - 2) {
-            miningArmShift.setZ(0);
-            miningArmShift.add(new Vector(1, 0, 0));
-            if (miningArmShift.getBlockX() > delta.getBlockX() - 2) {
-                miningArmShift.setX(0);
-                miningArmShift.add(new Vector(0, 1, 0));
+        Quarries.pool.submit(() -> {
+            miningArmShift.add(new Vector(0, 0, 1));
+            if (miningArmShift.getBlockZ() > delta.getBlockZ() - 2) {
+                miningArmShift.setZ(0);
+                miningArmShift.add(new Vector(1, 0, 0));
+                if (miningArmShift.getBlockX() > delta.getBlockX() - 2) {
+                    miningArmShift.setX(0);
+                    miningArmShift.add(new Vector(0, 1, 0));
+                }
             }
-        }
-        return min.clone().add(1 + miningArmShift.getBlockX(), delta.getBlockY() - miningArmShift.getBlockY(), 1 + miningArmShift.getBlockZ()).getBlock();
+            miningArmShift.setY(0);
+            while (true) {
+                miningArmShift.add(new Vector(0, 1, 0));
+                Block nextBlock = min.clone().add(
+                        1 + miningArmShift.getBlockX(), delta.getBlockY() - miningArmShift.getBlockY(),
+                        1 + miningArmShift.getBlockZ()).getBlock().getRelative(BlockFace.DOWN);
+                /*Quarries.plugin.getLogger().info(nextBlock.getLocation().toString() +
+                        nextBlock.getType().equals(Material.AIR) +
+                        !Protections.canBreak(nextBlock.getLocation(), null) +
+                        nextBlock.getType().equals(Material.BEDROCK) +
+                        (nextBlock.getDrops(currentTool).size() == 0));
+
+                 */
+                if (nextBlock.getLocation().getBlockY() < 0) break;
+                if (nextBlock.getType().equals(Material.AIR) || // Skip air
+                        !Protections.canBreak(nextBlock.getLocation(), null) || // Skip protection
+                        nextBlock.getType().equals(Material.BEDROCK) || // Skip bedrock
+                        nextBlock.getDrops(currentTool).size() == 0) // Skip no drop
+
+                    //noinspection UnnecessaryContinue
+                    continue;
+                else break;
+            }
+        });
     }
 
     @Synchronized
@@ -347,8 +367,10 @@ public class QuarrySystem implements Serializable {
         Block toolContainer = quarryBlock.getRelative(BlockFace.UP);
         if (toolContainer.getState() instanceof Container) {
             Inventory inv = ((Container) toolContainer.getState()).getInventory();
-            return inv.getItem(0);
+            currentTool = inv.getItem(0);
+            return currentTool;
         }
+        currentTool = null;
         return null;
     }
 

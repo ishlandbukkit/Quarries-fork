@@ -30,13 +30,13 @@ public class QuarryInterface extends SlimefunItem implements InventoryBlock {
     public static final Map<Block, MachineRecipe> processing = new HashMap<>();
     public static final Map<Block, Integer> progress = new HashMap<>();
     private static final int[] slot_border = {
-            0, 1, 2, 3, 4, 5, 6, 7, 8,
-            9, 17, 18, 26, 27, 35, 36, 44,
-            45, 46, 47, 48, 50, 51, 52, 53
+            0, 1, 2, 3, 4, 5, 6, 7,
+            9, 16, 18, 25, 27, 34, 36, 43,
+            45, 46, 47, 48, 50, 51, 52
     };
     private static final int slot_progress = 49;
     public final int energyConsumption = 10;
-    private final String invTitle = "Quarry";
+    private final String invTitle = "Quarry Interface";
 
     public QuarryInterface(Category category, SlimefunItemStack item, RecipeType recipeType, ItemStack[] recipe) {
         super(category, item, recipeType, recipe);
@@ -105,7 +105,7 @@ public class QuarryInterface extends SlimefunItem implements InventoryBlock {
 
             @Override
             public boolean isSynchronized() {
-                return true;
+                return false;
             }
         });
     }
@@ -122,10 +122,10 @@ public class QuarryInterface extends SlimefunItem implements InventoryBlock {
     @Override
     public int[] getOutputSlots() {
         return new int[]{
-                10, 11, 12, 13, 14, 15, 16,
-                29, 20, 21, 22, 23, 24, 25,
-                28, 29, 30, 31, 32, 33, 34,
-                37, 38, 39, 40, 41, 42, 43
+                10, 11, 12, 13, 14, 15,
+                29, 20, 21, 22, 23, 24,
+                28, 29, 30, 31, 32, 33,
+                37, 38, 39, 40, 41, 42,
         };
     }
 

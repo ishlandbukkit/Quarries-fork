@@ -1,6 +1,7 @@
 package me.TheTealViper.Quarries.blocks.listeners;
 
 import me.TheTealViper.Quarries.Quarries;
+import me.TheTealViper.Quarries.annotations.Synchronized;
 import me.TheTealViper.Quarries.blocks.Quarry;
 import me.TheTealViper.Quarries.nms.ServerVersions;
 import org.bukkit.event.EventHandler;
@@ -14,18 +15,20 @@ import java.util.List;
 
 public class QuarryListeners implements Listener {
 
+    @Synchronized
     @EventHandler
     public void onBreak(BlockBreakEvent e) {
         List<Quarry> dummy = new ArrayList<>(Quarry.DATABASE.values());
         Quarries.pool.execute(() -> {
             for (Quarry q : dummy) {
                 if (q.loc.equals(e.getBlock().getLocation())) {
-                    Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, q::breakQuarry, 1);
+                    Quarries.scheduler.runSync(q::breakQuarry);
                 }
             }
         });
     }
 
+    @Synchronized
     @EventHandler
     public void onBlockPlace(BlockPlaceEvent e) {
         if (e.isCancelled())

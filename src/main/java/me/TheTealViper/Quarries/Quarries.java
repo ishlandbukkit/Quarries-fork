@@ -4,6 +4,7 @@ import me.TheTealViper.Quarries.blocks.Construction;
 import me.TheTealViper.Quarries.blocks.Marker;
 import me.TheTealViper.Quarries.blocks.Quarry;
 import me.TheTealViper.Quarries.integration.protection.Protections;
+import me.TheTealViper.Quarries.misc.Scheduler;
 import me.TheTealViper.Quarries.nms.ServerVersions;
 import me.TheTealViper.Quarries.nms.v1_15_R1.CustomSpawner1_15;
 import me.TheTealViper.Quarries.recipes.MarkerRecipe;
@@ -34,10 +35,13 @@ public class Quarries extends JavaPlugin implements Listener {
     //general
     public static Quarries plugin;
     public static ServerVersions version;
+    public static Scheduler scheduler;
     //markers
     public static int Marker_Check_Range;
     //thread pool
     public static ExecutorService pool = null;
+    // max server thread time
+    public static int serverThreadTime = 4;
 
     @Nullable
     public static BlockFace getFacing(@NotNull Player p) {
@@ -108,7 +112,8 @@ public class Quarries extends JavaPlugin implements Listener {
         plugin = this;
         saveDefaultConfig();
         //Load values from config
-        Marker_Check_Range = getConfig().getInt("Marker_Check_Range");
+        Marker_Check_Range = getConfig().getInt("Marker_Check_Range", 256);
+        serverThreadTime = getConfig().getInt("Server_Thread_Time", 4);
         Bukkit.getPluginManager().registerEvents(plugin, plugin);
 
         //Handle version
@@ -122,6 +127,9 @@ public class Quarries extends JavaPlugin implements Listener {
         getLogger().info("Creating thread pool with size " + getConfig().getInt("Async_Threads", 8));
         //Init pool
         pool = Executors.newFixedThreadPool(getConfig().getInt("Async_Threads", 8));
+
+        getLogger().info("Initializing scheduler...");
+        scheduler = new Scheduler();
 
         getLogger().info("Reloading data from disk...");
         //Load data

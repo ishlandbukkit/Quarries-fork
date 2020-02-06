@@ -21,7 +21,7 @@ public class MarkerListeners implements Listener {
         Quarries.pool.execute(() -> {
             for (Marker marker : dummy) {
                 if (e.getBlock().getLocation().equals(marker.loc)) {
-                    Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, marker::breakMarker, 1);
+                    Quarries.scheduler.runSync(marker::breakMarker);
                 }
             }
         });

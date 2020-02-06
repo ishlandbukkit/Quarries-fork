@@ -18,7 +18,7 @@ public class QuarryArm_Listeners implements Listener {
         Quarries.pool.execute(() -> {
             for (QuarryArm arm : dummy) {
                 if (e.getBlock().getLocation().equals(arm.loc)) {
-                    Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, arm::breakQuarryArm, 1);
+                    Quarries.scheduler.runSync(arm::breakQuarryArm);
                 }
             }
         });

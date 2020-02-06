@@ -49,9 +49,13 @@ public class Marker implements Listener, Serializable {
 
     @Synchronized
     public static void onEnable() {
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(Quarries.plugin, () -> {
+        Bukkit.getScheduler().runTaskTimerAsynchronously(Quarries.plugin, () -> {
             for (Marker marker : DATABASE.values()) {
-                marker.loc.getWorld().spawnParticle(Particle.REDSTONE, marker.loc.clone().add(.5, .75, .5), 0, new DustOptions(Color.AQUA, 1));
+                Quarries.scheduler.runSync(
+                        () -> marker.loc.getWorld().spawnParticle(
+                                Particle.REDSTONE,
+                                marker.loc.clone().add(.5, .75, .5), 0,
+                                new DustOptions(Color.AQUA, 1)));
             }
         }, 0, 5);
 
@@ -79,7 +83,7 @@ public class Marker implements Listener, Serializable {
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakMarker, 0);
+        Quarries.scheduler.runSync(this::breakMarker);
     }
 
     private void writeObject(@NotNull ObjectOutputStream out) throws IOException {
@@ -90,7 +94,7 @@ public class Marker implements Listener, Serializable {
     private void readObject(@NotNull ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         loc = ls.toLocation();
-        Bukkit.getScheduler().runTaskLater(Quarries.plugin, this::regen, 1);
+        Quarries.scheduler.runSync(this::regen);
         isAlive = true;
     }
 
@@ -115,7 +119,7 @@ public class Marker implements Listener, Serializable {
     }
 
     public void breakObj() {
-        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakMarker, 1);
+        Quarries.scheduler.runSync(this::breakMarker);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")

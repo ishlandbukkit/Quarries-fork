@@ -8,9 +8,14 @@ import me.TheTealViper.Quarries.systems.QuarrySystem;
 import org.bukkit.Location;
 
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
 public class DataManager {
@@ -52,57 +57,63 @@ public class DataManager {
     }
 
     public static void cleanDB() throws ExecutionException, InterruptedException {
-        List<Future<?>> futures = new ArrayList<>();
+        LinkedBlockingQueue<Future<?>> futures = new LinkedBlockingQueue<>();
         futures.add(Quarries.pool.submit(() -> {
-            Iterator<Map.Entry<Location, Construction>> it = Construction.DATABASE.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<Location, Construction> entry = it.next();
-                if (entry.getKey() == null || entry.getValue() == null ||
-                        !entry.getValue().isAlive || !entry.getValue().checkAlive()) {
-                    if (entry.getValue() != null)
-                        entry.getValue().breakObj();
-                    it.remove();
-                }
+            for (Map.Entry<Location, Construction> entry : Construction.DATABASE.entrySet())
+                futures.add(Quarries.pool.submit(() -> {
+                            if (entry.getKey() == null || entry.getValue() == null ||
+                                    !entry.getValue().isAlive || !entry.getValue().checkAlive()) {
+                                if (entry.getValue() != null)
+                                    entry.getValue().breakObj();
+                                Construction.DATABASE.remove(entry.getKey());
+                            }
+                        }
+                ));
+        }));
+        futures.add(Quarries.pool.submit(() -> {
+            for (Map.Entry<Location, Quarry> entry : Quarry.DATABASE.entrySet()) {
+                futures.add(Quarries.pool.submit(() -> {
+                            if (entry.getKey() == null || entry.getValue() == null ||
+                                    !entry.getValue().isAlive || !entry.getValue().checkAlive()) {
+                                if (entry.getValue() != null)
+                                    entry.getValue().breakObj();
+                                Quarry.DATABASE.remove(entry.getKey());
+                            }
+                        }
+                ));
             }
         }));
         futures.add(Quarries.pool.submit(() -> {
-            Iterator<Map.Entry<Location, Quarry>> it = Quarry.DATABASE.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<Location, Quarry> entry = it.next();
-                if (entry.getKey() == null || entry.getValue() == null ||
-                        !entry.getValue().isAlive || !entry.getValue().checkAlive()) {
-                    if (entry.getValue() != null)
-                        entry.getValue().breakObj();
-                    it.remove();
-                }
+            for (Map.Entry<Location, Marker> entry : Marker.DATABASE.entrySet()) {
+                futures.add(Quarries.pool.submit(() -> {
+                            if (entry.getKey() == null || entry.getValue() == null ||
+                                    !entry.getValue().isAlive || !entry.getValue().checkAlive()) {
+                                if (entry.getValue() != null)
+                                    entry.getValue().breakObj();
+                                Marker.DATABASE.remove(entry.getKey());
+                            }
+                        }
+                ));
             }
         }));
         futures.add(Quarries.pool.submit(() -> {
-            Iterator<Map.Entry<Location, Marker>> it = Marker.DATABASE.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<Location, Marker> entry = it.next();
-                if (entry.getKey() == null || entry.getValue() == null ||
-                        !entry.getValue().isAlive || !entry.getValue().checkAlive()) {
-                    if (entry.getValue() != null)
-                        entry.getValue().breakObj();
-                    it.remove();
-                }
+            for (Map.Entry<Location, QuarrySystem> entry : QuarrySystem.DATABASE.entrySet()) {
+                futures.add(Quarries.pool.submit(() -> {
+                            if (entry.getKey() == null || entry.getValue() == null ||
+                                    !entry.getValue().isAlive || !entry.getValue().checkAlive()) {
+                                if (entry.getValue() != null)
+                                    entry.getValue().breakObj();
+                                QuarrySystem.DATABASE.remove(entry.getKey());
+                            }
+                        }
+                ));
             }
         }));
-        futures.add(Quarries.pool.submit(() -> {
-            Iterator<Map.Entry<Location, QuarrySystem>> it = QuarrySystem.DATABASE.entrySet().iterator();
-            while (it.hasNext()) {
-                Map.Entry<Location, QuarrySystem> entry = it.next();
-                if (entry.getKey() == null || entry.getValue() == null ||
-                        !entry.getValue().isAlive || !entry.getValue().checkAlive()) {
-                    if (entry.getValue() != null)
-                        entry.getValue().breakObj();
-                    it.remove();
-                }
-            }
-        }));
-        for (Future<?> future : futures)
+        while (true) {
+            Future<?> future = futures.poll(100, TimeUnit.MILLISECONDS);
+            if (future == null) break;
             future.get();
+        }
     }
 
     @SuppressWarnings("unchecked")

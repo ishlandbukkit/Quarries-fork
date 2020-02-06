@@ -38,10 +38,10 @@ public class QuarrySystemListeners implements Listener {
                                     system.max.getZ() > itemLoc.getZ() &&
                                     system.max.getY() > itemLoc.getY()
                     )
-                        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, () -> {
+                        Quarries.scheduler.runSync(() -> {
                             system.handleMinedItem(item);
                             itemEntity.remove();
-                        }, 0);
+                        });
                 });
         });
     }

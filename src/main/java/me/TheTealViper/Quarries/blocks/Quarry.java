@@ -6,7 +6,6 @@ import me.TheTealViper.Quarries.blocks.listeners.QuarryListeners;
 import me.TheTealViper.Quarries.integration.protection.Protections;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
 import me.TheTealViper.Quarries.systems.QuarrySystem;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldCreator;
@@ -78,7 +77,7 @@ public class Quarry implements Serializable {
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakQuarry, 0);
+        Quarries.scheduler.runSync(this::breakQuarry);
     }
 
     private void writeObject(@NotNull ObjectOutputStream out) throws IOException {
@@ -89,7 +88,7 @@ public class Quarry implements Serializable {
     private void readObject(@NotNull ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         loc = ls.toLocation();
-        Bukkit.getScheduler().runTaskLater(Quarries.plugin, this::regen, 1);
+        Quarries.scheduler.runSync(this::regen);
         isAlive = true;
     }
 
@@ -111,7 +110,7 @@ public class Quarry implements Serializable {
     }
 
     public void breakObj() {
-        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakQuarry, 1);
+        Quarries.scheduler.runSync(this::breakQuarry);
     }
 
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")

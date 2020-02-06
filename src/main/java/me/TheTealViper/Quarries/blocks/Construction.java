@@ -5,7 +5,6 @@ import me.TheTealViper.Quarries.annotations.Synchronized;
 import me.TheTealViper.Quarries.blocks.listeners.ConstructionListeners;
 import me.TheTealViper.Quarries.integration.protection.Protections;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldCreator;
@@ -67,11 +66,11 @@ public class Construction implements Serializable {
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakConstruction, 1);
+        Quarries.scheduler.runSync(this::breakConstruction);
     }
 
     public void breakObj() {
-        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakConstruction, 1);
+        Quarries.scheduler.runSync(this::breakConstruction);
     }
 
     private void writeObject(@NotNull ObjectOutputStream out) throws IOException {
@@ -82,7 +81,7 @@ public class Construction implements Serializable {
     private void readObject(@NotNull ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         loc = ls.toLocation();
-        Bukkit.getScheduler().runTaskLater(Quarries.plugin, this::regen, 1);
+        Quarries.scheduler.runSync(this::regen);
         isAlive = true;
     }
 

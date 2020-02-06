@@ -14,18 +14,18 @@ import org.bukkit.entity.EntityType;
 public final class SimpleHologram {
 
     public static void update(Block b, String name) {
-        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, () -> {
+        Quarries.scheduler.runSync(() -> {
             ArmorStand hologram = getArmorStand(b, true);
             assert hologram != null;
             hologram.setCustomName(ChatColors.color(name));
-        }, 1);
+        });
     }
 
     public static void remove(Block b) {
-        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, () -> {
+        Quarries.scheduler.runSync(() -> {
             ArmorStand hologram = getArmorStand(b, false);
             if (hologram != null) hologram.remove();
-        }, 1);
+        });
     }
 
     private static ArmorStand getArmorStand(Block b, boolean createIfNoneExists) {

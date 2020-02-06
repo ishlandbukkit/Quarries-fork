@@ -70,7 +70,7 @@ public class QuarryArm implements Serializable {
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakQuarryArm, 0);
+        Quarries.scheduler.runSync(this::breakQuarryArm);
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
@@ -81,7 +81,7 @@ public class QuarryArm implements Serializable {
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
         loc = ls.toLocation();
-        Bukkit.getScheduler().runTaskLater(Quarries.plugin, this::regen, 1);
+        Quarries.scheduler.runSync(this::regen);
         isAlive = true;
     }
 
@@ -102,10 +102,9 @@ public class QuarryArm implements Serializable {
     }
 
     public void breakObj() {
-        Quarries.plugin.getServer().getScheduler().runTaskLater(Quarries.plugin, this::breakQuarryArm, 1);
+        Quarries.scheduler.runSync(this::breakQuarryArm);
     }
 
-    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean checkAlive() {
         try {
             ArmorStand armorStand = (ArmorStand) loc.getWorld().getEntity(uuid);
