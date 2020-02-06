@@ -30,7 +30,9 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Future;
 
@@ -95,98 +97,144 @@ public class QuarrySystem implements Serializable {
         return new QuarrySystem(quarryBlock, max, min, true, type, new Vector(0, 1, 0), false, 1);
     }
 
-    @Synchronized
     public static void initCreateQuarrySystem(@NotNull Block quarryBlock, Block startingMarker, @NotNull BlockFace face) {
 //		Bukkit.broadcastMessage("checkRange:" + ViperFusion.Marker_Check_Range);
-        Quarries.plugin.getServer().createWorld(new WorldCreator(quarryBlock.getWorld().getName()));
-        List<Location> foundMarkers = new ArrayList<>();
-        if (!face.equals(BlockFace.NORTH)) {
-            for (int i = 1; i <= Quarries.Marker_Check_Range; i++) {
-                Block tempBlock = startingMarker.getRelative(BlockFace.SOUTH, i);
-                if (Marker.DATABASE.containsKey(tempBlock.getLocation())) {
+        Queue<Location> foundMarkers = new ConcurrentLinkedQueue<>();
+        List<Future<?>> futures = new ArrayList<>();
+        futures.add(Quarries.pool.submit(() -> {
+            if (!face.equals(BlockFace.NORTH)) {
+                for (int i = 1; i <= Quarries.Marker_Check_Range; i++) {
+                    Block tempBlock = startingMarker.getRelative(BlockFace.SOUTH, i);
+                    if (Marker.DATABASE.containsKey(tempBlock.getLocation())) {
 //					Bukkit.broadcastMessage("found!");
-                    foundMarkers.add(tempBlock.getLocation());
-                    break;
+                        foundMarkers.add(tempBlock.getLocation());
+                        break;
+                    }
                 }
             }
-        }
-        if (!face.equals(BlockFace.EAST)) {
-            for (int i = 1; i <= Quarries.Marker_Check_Range; i++) {
-                Block tempBlock = startingMarker.getRelative(BlockFace.WEST, i);
-                if (Marker.DATABASE.containsKey(tempBlock.getLocation())) {
+        }));
+        futures.add(Quarries.pool.submit(() -> {
+            if (!face.equals(BlockFace.EAST)) {
+                for (int i = 1; i <= Quarries.Marker_Check_Range; i++) {
+                    Block tempBlock = startingMarker.getRelative(BlockFace.WEST, i);
+                    if (Marker.DATABASE.containsKey(tempBlock.getLocation())) {
 //					Bukkit.broadcastMessage("found!");
-                    foundMarkers.add(tempBlock.getLocation());
-                    break;
+                        foundMarkers.add(tempBlock.getLocation());
+                        break;
+                    }
                 }
             }
-        }
-        if (!face.equals(BlockFace.SOUTH)) {
-            for (int i = 1; i <= Quarries.Marker_Check_Range; i++) {
-                Block tempBlock = startingMarker.getRelative(BlockFace.NORTH, i);
-                if (Marker.DATABASE.containsKey(tempBlock.getLocation())) {
+        }));
+        futures.add(Quarries.pool.submit(() -> {
+            if (!face.equals(BlockFace.SOUTH)) {
+                for (int i = 1; i <= Quarries.Marker_Check_Range; i++) {
+                    Block tempBlock = startingMarker.getRelative(BlockFace.NORTH, i);
+                    if (Marker.DATABASE.containsKey(tempBlock.getLocation())) {
 //					Bukkit.broadcastMessage("found!");
-                    foundMarkers.add(tempBlock.getLocation());
-                    break;
+                        foundMarkers.add(tempBlock.getLocation());
+                        break;
+                    }
                 }
             }
-        }
-        if (!face.equals(BlockFace.WEST)) {
-            for (int i = 1; i <= Quarries.Marker_Check_Range; i++) {
-                Block tempBlock = startingMarker.getRelative(BlockFace.EAST, i);
-                if (Marker.DATABASE.containsKey(tempBlock.getLocation())) {
+        }));
+        futures.add(Quarries.pool.submit(() -> {
+            if (!face.equals(BlockFace.WEST)) {
+                for (int i = 1; i <= Quarries.Marker_Check_Range; i++) {
+                    Block tempBlock = startingMarker.getRelative(BlockFace.EAST, i);
+                    if (Marker.DATABASE.containsKey(tempBlock.getLocation())) {
 //					Bukkit.broadcastMessage("found!");
-                    foundMarkers.add(tempBlock.getLocation());
-                    break;
+                        foundMarkers.add(tempBlock.getLocation());
+                        break;
+                    }
                 }
+            }
+        }));
+        for (Future<?> future : futures) {
+            try {
+                future.get();
+            } catch (Exception ignored) {
             }
         }
 
         if (foundMarkers.size() == 2) {
             //Handle markers
-            Marker.getMarker(startingMarker.getLocation()).breakMarker();
-            for (Location loc : foundMarkers)
-                Marker.getMarker(loc).breakMarker();
+            Quarries.scheduler.runSync(() -> Marker.getMarker(startingMarker.getLocation()).breakMarker());
+            List<Location> markers = new ArrayList<>();
+            for (Location loc : foundMarkers) {
+                markers.add(loc);
+                Quarries.scheduler.runSync(() -> Marker.getMarker(loc).breakMarker());
+            }
 
             //Handle construction blocks
-            Block constructionBlock;
-            Location[] temp = Quarries.getMinMax(foundMarkers.get(0), foundMarkers.get(1).clone().add(0, 3, 0));
+            Location[] temp = Quarries.getMinMax(markers.get(0), markers.get(1).clone().add(0, 3, 0));
             Location min = temp[0];
             Location max = temp[1];
             Vector delta = temp[2].toVector();
-            Location[] startingXPoints = new Location[]{min.clone(), min.clone().add(0, delta.getY(), 0), min.clone().add(0, 0, delta.getZ()), min.clone().add(0, delta.getY(), delta.getZ())};
 //			Bukkit.broadcastMessage("made it 1");
-            for (Location startingXPoint : startingXPoints) {
-                for (int x = 0; x < delta.getBlockX(); x++) {
-                    constructionBlock = startingXPoint.clone().add(x, 0, 0).getBlock();
-                    new Construction(constructionBlock.getLocation(), true);
+            futures = new ArrayList<>();
+            futures.add(Quarries.pool.submit(() -> {
+                Location[] startingXPoints = new Location[]{
+                        min.clone(),
+                        min.clone().add(0, delta.getY(), 0),
+                        min.clone().add(0, 0, delta.getZ()),
+                        min.clone().add(0, delta.getY(), delta.getZ())
+                };
+                for (Location startingXPoint : startingXPoints) {
+                    for (int x = 0; x < delta.getBlockX(); x++) {
+                        Block constructionBlock = startingXPoint.clone().add(x, 0, 0).getBlock();
+                        new Construction(constructionBlock.getLocation(), true);
+                    }
                 }
-            }
+            }));
 //			Bukkit.broadcastMessage("made it 2");
-            Location[] startingYPoints = new Location[]{min.clone(), min.clone().add(delta.getX(), 0, 0), min.clone().add(0, 0, delta.getZ()), min.clone().add(delta.getX(), 0, delta.getZ())};
-            for (Location startingYPoint : startingYPoints) {
-                for (int y = 0; y < delta.getBlockY(); y++) {
-                    constructionBlock = startingYPoint.clone().add(0, y, 0).getBlock();
-                    new Construction(constructionBlock.getLocation(), true);
+            futures.add(Quarries.pool.submit(() -> {
+                Location[] startingYPoints = new Location[]{
+                        min.clone(),
+                        min.clone().add(delta.getX(), 0, 0),
+                        min.clone().add(0, 0, delta.getZ()),
+                        min.clone().add(delta.getX(), 0, delta.getZ())
+                };
+                for (Location startingYPoint : startingYPoints) {
+                    for (int y = 0; y < delta.getBlockY(); y++) {
+                        Block constructionBlock = startingYPoint.clone().add(0, y, 0).getBlock();
+                        new Construction(constructionBlock.getLocation(), true);
+                    }
                 }
-            }
+            }));
 //			Bukkit.broadcastMessage("made it 3");
-            Location[] startingZPoints = new Location[]{min.clone(), min.clone().add(delta.getX(), 0, 0), min.clone().add(0, delta.getY(), 0), min.clone().add(delta.getX(), delta.getY(), 0)};
-            for (Location startingZPoint : startingZPoints) {
-                for (int z = 0; z < delta.getBlockZ(); z++) {
-                    constructionBlock = startingZPoint.clone().add(0, 0, z).getBlock();
-                    new Construction(constructionBlock.getLocation(), true);
+            futures.add(Quarries.pool.submit(() -> {
+                Location[] startingZPoints = new Location[]{
+                        min.clone(),
+                        min.clone().add(delta.getX(), 0, 0),
+                        min.clone().add(0, delta.getY(), 0),
+                        min.clone().add(delta.getX(), delta.getY(), 0)
+                };
+                for (Location startingZPoint : startingZPoints) {
+                    for (int z = 0; z < delta.getBlockZ(); z++) {
+                        Block constructionBlock = startingZPoint.clone().add(0, 0, z).getBlock();
+                        new Construction(constructionBlock.getLocation(), true);
+                    }
                 }
-            }
+            }));
 //			Bukkit.broadcastMessage("made it 4");
-            for (int x = 1; x < delta.getBlockX(); x++) {
-                for (int z = 1; z <= delta.getBlockZ(); z++) {
-                    constructionBlock = min.clone().add(x, delta.getBlockY(), z).getBlock();
-                    new Construction(constructionBlock.getLocation(), true);
+            futures.add(Quarries.pool.submit(() -> {
+                for (int x = 1; x < delta.getBlockX(); x++) {
+                    for (int z = 1; z <= delta.getBlockZ(); z++) {
+                        Block constructionBlock = min.clone().add(x, delta.getBlockY(), z).getBlock();
+                        new Construction(constructionBlock.getLocation(), true);
+                    }
+                }
+            }));
+//			Bukkit.broadcastMessage("made it 5");
+            Block constructionBlock = min.clone().add(delta).getBlock();
+            new Construction(constructionBlock.getLocation(), true);
+
+            for (Future<?> future : futures) {
+                try {
+                    future.get();
+                } catch (Exception ignored) {
                 }
             }
-//			Bukkit.broadcastMessage("made it 5");
-            constructionBlock = min.clone().add(delta).getBlock();
-            new Construction(constructionBlock.getLocation(), true);
 
             //Handle creating QuarrySystem
             QuarrySystem QS = QuarrySystem.createQuarrySystem(quarryBlock, max, min, QuarrySystemTypes.Default);

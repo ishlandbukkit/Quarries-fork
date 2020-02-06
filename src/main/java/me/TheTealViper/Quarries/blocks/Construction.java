@@ -29,7 +29,6 @@ public class Construction implements Serializable {
     public transient boolean isAlive = true;
     private LocationSerializable ls;
 
-    @Synchronized
     public Construction(@NotNull Location loc, boolean generateNew) {
         this.loc = loc;
         this.world = loc.getWorld().getName();
@@ -40,7 +39,7 @@ public class Construction implements Serializable {
         DATABASE.put(loc, this);
 
         if (generateNew)
-            regen();
+            Quarries.scheduler.runSync(this::regen);
     }
 
     @Synchronized
