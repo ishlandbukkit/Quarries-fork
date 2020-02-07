@@ -5,6 +5,7 @@ import me.TheTealViper.Quarries.annotations.Synchronized;
 import me.TheTealViper.Quarries.blocks.listeners.ConstructionListeners;
 import me.TheTealViper.Quarries.integration.protection.Protections;
 import me.TheTealViper.Quarries.serializables.LocationSerializable;
+import me.TheTealViper.Quarries.systems.QuarrySystem;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.WorldCreator;
@@ -28,18 +29,25 @@ public class Construction implements Serializable {
     public transient Location loc;
     public transient boolean isAlive = true;
     private LocationSerializable ls;
+    private LocationSerializable quarryLoc;
 
-    public Construction(@NotNull Location loc, boolean generateNew) {
+    public Construction(@NotNull Location loc, boolean generateNew, Location quarryLoc) {
         this.loc = loc;
         this.world = loc.getWorld().getName();
+        this.quarryLoc = LocationSerializable.parseLocation(quarryLoc);
         if (!Protections.canPlace(loc, null)) {
             this.isAlive = false;
             return;
         }
-        DATABASE.put(loc, this);
-
         if (generateNew)
-            Quarries.scheduler.runSync(this::regen);
+            Quarries.scheduler.runSync(() -> {
+                this.regen();
+                DATABASE.put(loc, this);
+            });
+        else
+            DATABASE.put(loc, this);
+
+
     }
 
     @Synchronized
@@ -86,15 +94,16 @@ public class Construction implements Serializable {
 
     @Synchronized
     public void breakConstruction() {
-        if (loc != null) {
-            DATABASE.remove(loc);
-        }
         if (!isAlive || !checkAlive()) return;
         try {
             Quarries.plugin.getServer().createWorld(new WorldCreator(world));
             loc.getBlock().setType(Material.AIR);
         } catch (IllegalArgumentException e) {
             breakObj(); // Try to hunt with "world unloaded"
+            return;
+        }
+        if (loc != null) {
+            DATABASE.remove(loc);
         }
 
         loc = null;
@@ -103,7 +112,7 @@ public class Construction implements Serializable {
     @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean checkAlive() {
         try {
-            Quarries.plugin.getServer().createWorld(new WorldCreator(world));
+            if (QuarrySystem.DATABASE.get(quarryLoc.toLocation()) == null) return false;
             Block b = loc.getBlock();
             // Basic type detection
             if (!b.getType().equals(Material.SPAWNER)) {

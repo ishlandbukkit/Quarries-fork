@@ -17,7 +17,7 @@ public class QuarrySystemListeners implements Listener {
     @EventHandler
     public void onBreak(BlockBreakEvent e) {
         if (QuarrySystem.DATABASE.containsKey(e.getBlock().getLocation())) {
-            QuarrySystem.DATABASE.get(e.getBlock().getLocation()).destroy();
+            Quarries.pool.execute(() -> QuarrySystem.DATABASE.get(e.getBlock().getLocation()).destroy());
         }
     }
 
@@ -32,7 +32,9 @@ public class QuarrySystemListeners implements Listener {
                 Quarries.pool.execute(() -> {
                     QuarrySystem system = entry.getValue();
                     if (
-                            system.min.getX() < itemLoc.getX() &&
+                            system.quarryBlock.getLocation().getWorld().getName()
+                                    .equals(e.getLocation().getWorld().getName()) &&
+                                    system.min.getX() < itemLoc.getX() &&
                                     system.min.getZ() < itemLoc.getZ() &&
                                     system.max.getX() > itemLoc.getX() &&
                                     system.max.getZ() > itemLoc.getZ() &&

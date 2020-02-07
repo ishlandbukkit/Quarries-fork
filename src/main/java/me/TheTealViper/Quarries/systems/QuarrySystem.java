@@ -60,6 +60,7 @@ public class QuarrySystem implements Serializable {
     private transient ItemStack currentTool = null;
     @SuppressWarnings("InstanceVariableMayNotBeInitializedByReadObject")
     private transient Future<?> lastShift = null;
+    public ConcurrentLinkedQueue<LocationSerializable> constructions = new ConcurrentLinkedQueue<>();
 
     @Synchronized
     public QuarrySystem(@NotNull Block quarryBlock, @NotNull Location max,
@@ -169,6 +170,7 @@ public class QuarrySystem implements Serializable {
             Vector delta = temp[2].toVector();
 //			Bukkit.broadcastMessage("made it 1");
             futures = new ArrayList<>();
+            ConcurrentLinkedQueue<LocationSerializable> locations = new ConcurrentLinkedQueue<>();
             futures.add(Quarries.pool.submit(() -> {
                 Location[] startingXPoints = new Location[]{
                         min.clone(),
@@ -179,7 +181,8 @@ public class QuarrySystem implements Serializable {
                 for (Location startingXPoint : startingXPoints) {
                     for (int x = 0; x < delta.getBlockX(); x++) {
                         Block constructionBlock = startingXPoint.clone().add(x, 0, 0).getBlock();
-                        new Construction(constructionBlock.getLocation(), true);
+                        new Construction(constructionBlock.getLocation(), true, quarryBlock.getLocation());
+                        locations.add(LocationSerializable.parseLocation(constructionBlock.getLocation()));
                     }
                 }
             }));
@@ -194,7 +197,8 @@ public class QuarrySystem implements Serializable {
                 for (Location startingYPoint : startingYPoints) {
                     for (int y = 0; y < delta.getBlockY(); y++) {
                         Block constructionBlock = startingYPoint.clone().add(0, y, 0).getBlock();
-                        new Construction(constructionBlock.getLocation(), true);
+                        new Construction(constructionBlock.getLocation(), true, quarryBlock.getLocation());
+                        locations.add(LocationSerializable.parseLocation(constructionBlock.getLocation()));
                     }
                 }
             }));
@@ -209,7 +213,8 @@ public class QuarrySystem implements Serializable {
                 for (Location startingZPoint : startingZPoints) {
                     for (int z = 0; z < delta.getBlockZ(); z++) {
                         Block constructionBlock = startingZPoint.clone().add(0, 0, z).getBlock();
-                        new Construction(constructionBlock.getLocation(), true);
+                        new Construction(constructionBlock.getLocation(), true, quarryBlock.getLocation());
+                        locations.add(LocationSerializable.parseLocation(constructionBlock.getLocation()));
                     }
                 }
             }));
@@ -218,13 +223,15 @@ public class QuarrySystem implements Serializable {
                 for (int x = 1; x < delta.getBlockX(); x++) {
                     for (int z = 1; z <= delta.getBlockZ(); z++) {
                         Block constructionBlock = min.clone().add(x, delta.getBlockY(), z).getBlock();
-                        new Construction(constructionBlock.getLocation(), true);
+                        new Construction(constructionBlock.getLocation(), true, quarryBlock.getLocation());
+                        locations.add(LocationSerializable.parseLocation(constructionBlock.getLocation()));
                     }
                 }
             }));
 //			Bukkit.broadcastMessage("made it 5");
             Block constructionBlock = min.clone().add(delta).getBlock();
-            new Construction(constructionBlock.getLocation(), true);
+            new Construction(constructionBlock.getLocation(), true, quarryBlock.getLocation());
+            locations.add(LocationSerializable.parseLocation(constructionBlock.getLocation()));
 
             for (Future<?> future : futures) {
                 try {
@@ -236,6 +243,7 @@ public class QuarrySystem implements Serializable {
 
             //Handle creating QuarrySystem
             QuarrySystem QS = QuarrySystem.createQuarrySystem(quarryBlock, max, min, QuarrySystemTypes.Default);
+            QS.constructions = locations;
             QuarrySystem.DATABASE.put(QS.quarryBlock.getLocation(), QS);
         }
     }
@@ -261,7 +269,7 @@ public class QuarrySystem implements Serializable {
     @Override
     protected void finalize() throws Throwable {
         super.finalize();
-        Quarries.scheduler.runSync(this::destroy);
+        this.destroy();
     }
 
     public void init() {
@@ -284,6 +292,14 @@ public class QuarrySystem implements Serializable {
         Queue<Future<?>> futures = new LinkedBlockingQueue<>();
         //Break construction blocks
         Vector delta = max.clone().subtract(min.clone()).toVector();
+        futures.add(Quarries.pool.submit(() -> {
+            for (LocationSerializable location : this.constructions) {
+                Construction construction = Construction.getConstruction(location.toLocation());
+                if (construction != null)
+                    Quarries.scheduler.runSync(construction::breakConstruction);
+            }
+        }));
+        /*
         futures.add(Quarries.pool.submit(() -> {
             Location[] startingXPoints = new Location[]{
                     min.clone(),
@@ -327,10 +343,11 @@ public class QuarrySystem implements Serializable {
                 }
             }
         }));
+        */
         Block constructionBlock = max.getBlock();
         Construction con = Construction.getConstruction(constructionBlock.getLocation());
         if (con != null)
-            con.breakConstruction();
+            Quarries.scheduler.runSync(con::breakConstruction);
         for (Future<?> future : futures) {
             try {
                 future.get();
@@ -339,13 +356,19 @@ public class QuarrySystem implements Serializable {
             }
         }
 
-        //Remove from code
-        DATABASE.remove(quarryBlock.getLocation());
+        Quarries.scheduler.runSync(() -> Quarries.pool.execute(() -> {
+            // Remove from code
+            DATABASE.remove(quarryBlock.getLocation());
 
-        // Linus drop tips
-        quarryBlock.getLocation().getWorld().dropItem(quarryBlock.getLocation(), CustomItems1_15.getItem(Quarries.TEXID_QUARRY));
+            // Linus drop tips
+            Quarries.scheduler.runSync(
+                    () -> quarryBlock.getLocation().getWorld()
+                            .dropItem(quarryBlock.getLocation(),
+                                    CustomItems1_15.getItem(Quarries.TEXID_QUARRY))
+            );
 
-        isAlive = false;
+            isAlive = false;
+        }));
     }
 
     public void mine() {
@@ -380,7 +403,7 @@ public class QuarrySystem implements Serializable {
     }
 
     public void breakObj() {
-        Quarries.scheduler.runSync(this::destroy);
+        this.destroy();
     }
 
     private void updateArm(@NotNull Vector delta) {
