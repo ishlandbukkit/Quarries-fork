@@ -31,10 +31,8 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
+import java.util.logging.Level;
 
 @SuppressWarnings({"CanBeFinal", "deprecation"})
 public class QuarrySystem implements Serializable {
@@ -92,7 +90,6 @@ public class QuarrySystem implements Serializable {
 
     @NotNull
     @Contract("_, _, _, _ -> new")
-    @Synchronized
     public static QuarrySystem createQuarrySystem(Block quarryBlock, Location max, Location min, QuarrySystemTypes type) {
         return new QuarrySystem(quarryBlock, max, min, true, type, new Vector(0, 1, 0), false, 1);
     }
@@ -232,7 +229,8 @@ public class QuarrySystem implements Serializable {
             for (Future<?> future : futures) {
                 try {
                     future.get();
-                } catch (Exception ignored) {
+                } catch (Exception e) {
+                    Quarries.plugin.getLogger().log(Level.WARNING, "Unable to init QuarrySystem", e);
                 }
             }
 
@@ -280,52 +278,66 @@ public class QuarrySystem implements Serializable {
         isActive = true;
     }
 
-    @Synchronized
     public void destroy() {
         Quarries.plugin.getServer().createWorld(new WorldCreator(world));
         if (!isAlive || !checkAlive()) return;
+        Queue<Future<?>> futures = new LinkedBlockingQueue<>();
         //Break construction blocks
         Vector delta = max.clone().subtract(min.clone()).toVector();
-        Block constructionBlock;
-        Location[] startingXPoints = new Location[]{min.clone(), min.clone().add(0, delta.getY(), 0), min.clone().add(0, 0, delta.getZ()), min.clone().add(0, delta.getY(), delta.getZ())};
-        for (Location startingXPoint : startingXPoints) {
-            for (int x = 0; x < delta.getBlockX(); x++) {
-                constructionBlock = startingXPoint.clone().add(x, 0, 0).getBlock();
-                Construction con = Construction.getConstruction(constructionBlock.getLocation());
-                if (con != null)
-                    con.breakConstruction();
+        futures.add(Quarries.pool.submit(() -> {
+            Location[] startingXPoints = new Location[]{
+                    min.clone(),
+                    min.clone().add(0, delta.getY(), 0),
+                    min.clone().add(0, 0, delta.getZ()),
+                    min.clone().add(0, delta.getY(), delta.getZ())
+            };
+            for (Location startingXPoint : startingXPoints) {
+                for (int x = 0; x < delta.getBlockX(); x++) {
+                    Block constructionBlock = startingXPoint.clone().add(x, 0, 0).getBlock();
+                    Construction con = Construction.getConstruction(constructionBlock.getLocation());
+                    if (con != null)
+                        Quarries.scheduler.runSync(con::breakConstruction);
+                }
             }
-        }
-        Location[] startingYPoints = new Location[]{min.clone(), min.clone().add(delta.getX(), 0, 0), min.clone().add(0, 0, delta.getZ()), min.clone().add(delta.getX(), 0, delta.getZ())};
-        for (Location startingYPoint : startingYPoints) {
-            for (int y = 0; y < delta.getBlockY(); y++) {
-                constructionBlock = startingYPoint.clone().add(0, y, 0).getBlock();
-                Construction con = Construction.getConstruction(constructionBlock.getLocation());
-                if (con != null)
-                    con.breakConstruction();
+        }));
+        futures.add(Quarries.pool.submit(() -> {
+            Location[] startingYPoints = new Location[]{
+                    min.clone(),
+                    min.clone().add(delta.getX(), 0, 0),
+                    min.clone().add(0, 0, delta.getZ()),
+                    min.clone().add(delta.getX(), 0, delta.getZ())
+            };
+            for (Location startingYPoint : startingYPoints) {
+                for (int y = 0; y < delta.getBlockY(); y++) {
+                    Block constructionBlock = startingYPoint.clone().add(0, y, 0).getBlock();
+                    Construction con = Construction.getConstruction(constructionBlock.getLocation());
+                    if (con != null)
+                        Quarries.scheduler.runSync(con::breakConstruction);
+                }
             }
-        }
-        Location[] startingZPoints = new Location[]{min.clone(), min.clone().add(delta.getX(), 0, 0), min.clone().add(0, delta.getY(), 0), min.clone().add(delta.getX(), delta.getY(), 0)};
-        for (Location startingZPoint : startingZPoints) {
-            for (int z = 0; z < delta.getBlockZ(); z++) {
-                constructionBlock = startingZPoint.clone().add(0, 0, z).getBlock();
-                Construction con = Construction.getConstruction(constructionBlock.getLocation());
-                if (con != null)
-                    con.breakConstruction();
+        }));
+
+        futures.add(Quarries.pool.submit(() -> {
+            for (int x = 1; x < delta.getBlockX(); x++) {
+                for (int z = 1; z <= delta.getBlockZ(); z++) {
+                    Block constructionBlock = min.clone().add(x, delta.getBlockY(), z).getBlock();
+                    Construction con = Construction.getConstruction(constructionBlock.getLocation());
+                    if (con != null)
+                        Quarries.scheduler.runSync(con::breakConstruction);
+                }
             }
-        }
-        for (int x = 1; x < delta.getBlockX(); x++) {
-            for (int z = 1; z <= delta.getBlockZ(); z++) {
-                constructionBlock = min.clone().add(x, delta.getBlockY(), z).getBlock();
-                Construction con = Construction.getConstruction(constructionBlock.getLocation());
-                if (con != null)
-                    con.breakConstruction();
-            }
-        }
-        constructionBlock = max.getBlock();
+        }));
+        Block constructionBlock = max.getBlock();
         Construction con = Construction.getConstruction(constructionBlock.getLocation());
         if (con != null)
             con.breakConstruction();
+        for (Future<?> future : futures) {
+            try {
+                future.get();
+            } catch (Exception e) {
+                Quarries.plugin.getLogger().log(Level.WARNING, "Unable to destroy QuarrySystem", e);
+            }
+        }
 
         //Remove from code
         DATABASE.remove(quarryBlock.getLocation());
